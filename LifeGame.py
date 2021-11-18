@@ -1,7 +1,7 @@
 from fltk import *
 
 class Cell(Fl_Button):
-	alive=0
+	alive=False
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Button.__init__(self,x,y,w,h,label)
 		
@@ -11,66 +11,69 @@ class Grid(Fl_Double_Window):
 		wid.color(FL_YELLOW)
 		
 	def startcb(self, wid):
-		Fl.add_timeout(0.05, self.timeout)
-		
-	def timeout(self):
 		contact=0
 		born=[]
 		kill=[]
-		Cell.alive=0
-		
+		Cell.alive=False
 		
 		for row in range(len(self.bl)):
 			for column in range(len(self.bl)):
+				
 				if self.bl[row][column].color()==95:
-					contact=0
-					Cell.alive+=1
 					
-					try:
-						for r,c in self.area:
+					contact=0
+					Cell.alive=True
+					
+					
+					for r,c in self.area:
+						
+						if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
+							continue
 							
-							if self.bl[row+r][column+c].color()==FL_YELLOW:
-									contact+=1
+						if self.bl[row+r][column+c].color()==95:
+							contact+=1
+								
 									
-					except:
-						continue
+									
+					if contact < 2 or contact >= 4:
+						kill.append(self.bl[row][column]) #adds the cell to be killed
 						
 					
-								
-					if contact < 2 or contact >= 4:
-						kill.append(self.bl[row+r][column+c]) #adds the cell to be killed
-					
-				
-				
 				else:
 					contact=0
 					
-					try:
-						for r,c in self.area:
-							
-							if self.bl[row+r][column+c].color()==FL_YELLOW:
-								contact+=1
-								
-					except:
-						continue
-						
-					if contact == 3:
-						born.append(self.bl[row+r][column+c])
 					
-				
-			for cell in born:
-					cell.color(FL_YELLOW)
-					cell.redraw()
+					for r,c in self.area:
+						
+						if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
+							continue
 							
+						if self.bl[row+r][column+c].color()==FL_YELLOW:
+							contact+=1	
+								
+					if contact != 0:
+						print(contact)
+					if contact == 3:
+						born.append(self.bl[row][column])
+								
+					
+						
+					
+			
+			
+					
+			
+			for cell in born:
+				cell.color(FL_YELLOW)
+				cell.redraw()
+
+						
 			
 				
 			for cell in kill:
 				cell.color(FL_BACKGROUND_COLOR)
 				cell.redraw()
-				
-				
-			if Cell.alive > 0:
-				Fl.repeat_timeout(0.05, self.timeout)
+					
 			
 		
 		
@@ -114,4 +117,5 @@ Fl.run()
 #if cell touches less than 2 cells, dies
 #if cell touches 2 or 3 cells, lives
 #if cell touches 4 or more cells, dies
-#if empty space touches 3 or more cells, born
+#if empty space touches 3 cells, born
+
