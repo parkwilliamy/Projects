@@ -11,23 +11,55 @@ class Grid(Fl_Double_Window):
 		wid.color(FL_YELLOW)
 		
 	def startcb(self, wid):
-		Cell.alive=0
+		Fl.add_timeout(0.05, self.timeout)
+		
+	def timeout(self):
 		contact=0
 		born=[]
 		kill=[]
+		Cell.alive=0
+		
+		
 		for z in range(len(self.bl)):
 			if self.bl[z].color()==95:
 				contact=0
 				Cell.alive+=1
-				for a in self.touch:
-					if self.bl[z+a].color()==FL_YELLOW:
-						contact+=1
+				if z%80==0:
+					for a in self.leftedge:
+						if z+a < 0 or z+a > 6399:
+							continue
+							
+						if self.bl[z+a].color()==FL_YELLOW:
+							contact+=1
+					if contact < 2 or contact >= 4:
+						kill.append(self.bl[z]) #adds the cell to be killed		
+							
+				elif (z+1)%80==0:
+					for a in self.rightedge:
+						if z+a < 0 or z+a > 6399:
+							continue
+							
+						if self.bl[z+a].color()==FL_YELLOW:
+							contact+=1
+					if contact < 2 or contact >= 4:
+						kill.append(self.bl[z]) #adds the cell to be killed
+					
+					
+				else:	
+					for a in self.touch:
+						if z+a < 0 or z+a > 6399:
+							continue
+							
 						
-				if contact < 2 or contact >= 4:
-					kill.append(self.bl[z]) #adds the cell to be killed
+						
+						if self.bl[z+a].color()==FL_YELLOW:
+							contact+=1
+					if contact < 2 or contact >= 4:
+						kill.append(self.bl[z]) #adds the cell to be killed
 				
 				
 			else:
+				contact=0
 				for a in self.touch:
 					if z+a < 0 or z+a > 6399:
 						continue
@@ -35,19 +67,24 @@ class Grid(Fl_Double_Window):
 					if self.bl[z+a].color()==FL_YELLOW:
 						contact+=1
 					
-				if contact >= 3:
+				if contact == 3:
 					born.append(self.bl[z])
 				
+			
 		for cell in born:
-			cell.color(FL_YELLOW)
-			cell.redraw()
+				cell.color(FL_YELLOW)
+				cell.redraw()
 						
 		
-		'''		
+			
 		for cell in kill:
 			cell.color(FL_BACKGROUND_COLOR)
 			cell.redraw()
-			'''
+			
+			
+		if Cell.alive > 0:
+			Fl.repeat_timeout(0.05, self.timeout)
+			
 		
 		
 					
@@ -64,7 +101,9 @@ class Grid(Fl_Double_Window):
 				
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self, x, y, w, h, label)
-		self.touch=[-1,79,-81,-80,80,1,-79, 81] #first 3 are left, last 3 are right
+		self.touch=[-1,79,-81,-80,80,1,-79, 81] 
+		self.leftedge=[-1,79,-81]
+		self.rightedge=[1,-79,81]
 		self.width=10
 		self.bl=[]
 		self.begin()
@@ -89,6 +128,8 @@ h=800
 
 	
 game=Grid(x,y,w,h)
+
+Fl_scheme('gltk+')
 
 Fl.run()
 #if cell touches less than 2 cells, dies
