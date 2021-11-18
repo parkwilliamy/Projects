@@ -20,99 +20,78 @@ class Grid(Fl_Double_Window):
 		Cell.alive=0
 		
 		
-		for z in range(len(self.bl)):
-			if self.bl[z].color()==95:
-				contact=0
-				Cell.alive+=1
-				if z%80==0:
-					for a in self.leftedge:
-						if z+a < 0 or z+a > 6399:
-							continue
-							
-						if self.bl[z+a].color()==FL_YELLOW:
-							contact+=1
-					if contact < 2 or contact >= 4:
-						kill.append(self.bl[z]) #adds the cell to be killed		
-							
-				elif (z+1)%80==0:
-					for a in self.rightedge:
-						if z+a < 0 or z+a > 6399:
-							continue
-							
-						if self.bl[z+a].color()==FL_YELLOW:
-							contact+=1
-					if contact < 2 or contact >= 4:
-						kill.append(self.bl[z]) #adds the cell to be killed
+		for row in range(len(self.bl)):
+			for column in range(len(self.bl)):
+				if self.bl[row][column].color()==95:
+					contact=0
+					Cell.alive+=1
 					
-					
-				else:	
-					for a in self.touch:
-						if z+a < 0 or z+a > 6399:
-							continue
+					try:
+						for r,c in self.area:
 							
-						
-						
-						if self.bl[z+a].color()==FL_YELLOW:
-							contact+=1
-					if contact < 2 or contact >= 4:
-						kill.append(self.bl[z]) #adds the cell to be killed
-				
-				
-			else:
-				contact=0
-				for a in self.touch:
-					if z+a < 0 or z+a > 6399:
+							if self.bl[row+r][column+c].color()==FL_YELLOW:
+									contact+=1
+									
+					except:
 						continue
-					
-					if self.bl[z+a].color()==FL_YELLOW:
-						contact+=1
-					
-				if contact == 3:
-					born.append(self.bl[z])
-				
-			
-		for cell in born:
-				cell.color(FL_YELLOW)
-				cell.redraw()
 						
-		
-			
-		for cell in kill:
-			cell.color(FL_BACKGROUND_COLOR)
-			cell.redraw()
-			
-			
-		if Cell.alive > 0:
-			Fl.repeat_timeout(0.05, self.timeout)
-			
-		
-		
 					
-			
-				
-			
-				
-				
+								
+					if contact < 2 or contact >= 4:
+						kill.append(self.bl[row+r][column+c]) #adds the cell to be killed
 					
+				
+				
+				else:
+					contact=0
+					
+					try:
+						for r,c in self.area:
+							
+							if self.bl[row+r][column+c].color()==FL_YELLOW:
+								contact+=1
+								
+					except:
+						continue
+						
+					if contact == 3:
+						born.append(self.bl[row+r][column+c])
+					
+				
+			for cell in born:
+					cell.color(FL_YELLOW)
+					cell.redraw()
+							
+			
+				
+			for cell in kill:
+				cell.color(FL_BACKGROUND_COLOR)
+				cell.redraw()
+				
+				
+			if Cell.alive > 0:
+				Fl.repeat_timeout(0.05, self.timeout)
+			
 		
-				
 		
-				
-				
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self, x, y, w, h, label)
-		self.touch=[-1,79,-81,-80,80,1,-79, 81] 
-		self.leftedge=[-1,79,-81]
-		self.rightedge=[1,-79,81]
+		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
 		self.width=10
 		self.bl=[]
 		self.begin()
 		
 		for y in range(80):
+			self.xcord=[]
 			for x in range(80):
 				self.but=Cell(x*self.width, y*self.width, self.width,self.width)
-				self.bl.append(self.but)
-				self.bl[-1].callback(self.butcb)
+				self.xcord.append(self.but)
+				self.xcord[-1].callback(self.butcb)
+				
+				
+			
+			self.bl.append(self.xcord)
+				
 				
 		self.startbut=Cell(800,0,200,80, 'Start')
 		self.startbut.callback(self.startcb)
