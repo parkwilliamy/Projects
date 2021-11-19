@@ -16,7 +16,7 @@ class Grid(Fl_Double_Window):
 		kill=[]
 		livecells=[]
 		
-		for x in range(10000):
+		while Cell.alive == True:
 			for row in range(len(self.bl)):
 				for column in range(len(self.bl)):
 					
@@ -24,6 +24,7 @@ class Grid(Fl_Double_Window):
 						
 						contact=0
 						Cell.alive=True
+						livecells.append(self.bl[row][column])
 						
 						
 						for r,c in self.area:
@@ -60,14 +61,19 @@ class Grid(Fl_Double_Window):
 						
 			for cell in born:
 				cell.color(FL_YELLOW)
+				livecells.append(cell)
 				cell.redraw()
-
-							
-				
-					
+			
+			
 			for cell in kill:
 				cell.color(FL_BACKGROUND_COLOR)
+				livecells.remove(cell)
 				cell.redraw()
+				
+			
+				
+			if len(livecells) == 0:
+				Cell.alive = False
 						
 			Fl.check()	
 			
