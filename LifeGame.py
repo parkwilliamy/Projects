@@ -1,7 +1,7 @@
 from fltk import *
 
 class Cell(Fl_Button):
-	alive=False
+	alive=True
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Button.__init__(self,x,y,w,h,label)
 		
@@ -14,67 +14,66 @@ class Grid(Fl_Double_Window):
 		contact=0
 		born=[]
 		kill=[]
-		Cell.alive=False
+		livecells=[]
 		
-		for row in range(len(self.bl)):
-			for column in range(len(self.bl)):
-				
-				if self.bl[row][column].color()==95:
+		for x in range(10000):
+			for row in range(len(self.bl)):
+				for column in range(len(self.bl)):
 					
-					contact=0
-					Cell.alive=True
-					
-					
-					for r,c in self.area:
+					if self.bl[row][column].color()==95:
 						
-						if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
-							continue
+						contact=0
+						Cell.alive=True
+						
+						
+						for r,c in self.area:
 							
-						if self.bl[row+r][column+c].color()==95:
-							contact+=1
+							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
+								continue
 								
+							if self.bl[row+r][column+c].color()==95:
+								contact+=1
 									
-									
-					if contact < 2 or contact >= 4:
-						kill.append(self.bl[row][column]) #adds the cell to be killed
-						
-					
-				else:
-					contact=0
-					
-					
-					for r,c in self.area:
-						
-						if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
-							continue
+										
+										
+						if contact < 2 or contact >= 4:
+							kill.append(self.bl[row][column]) #adds the cell to be killed
 							
-						if self.bl[row+r][column+c].color()==FL_YELLOW:
-							contact+=1	
-								
-					if contact != 0:
-						print(contact)
-					if contact == 3:
-						born.append(self.bl[row][column])
-								
-					
 						
-					
-			
-			
-					
-			
+					else:
+						contact=0
+						
+						
+						
+						for r,c in self.area:
+							
+							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
+								continue
+								
+							if self.bl[row+r][column+c].color()==FL_YELLOW:
+								contact+=1	
+									
+						if contact == 3:
+							born.append(self.bl[row][column])
+							
+									
+						
 			for cell in born:
 				cell.color(FL_YELLOW)
 				cell.redraw()
 
-						
-			
+							
 				
+					
 			for cell in kill:
 				cell.color(FL_BACKGROUND_COLOR)
 				cell.redraw()
-					
+						
+			Fl.check()	
 			
+			
+			
+		
 		
 		
 	def __init__(self,x,y,w,h,label=None):
@@ -118,4 +117,3 @@ Fl.run()
 #if cell touches 2 or 3 cells, lives
 #if cell touches 4 or more cells, dies
 #if empty space touches 3 cells, born
-
