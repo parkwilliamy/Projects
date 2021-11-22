@@ -5,16 +5,17 @@ class Cell(Fl_Button):
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Button.__init__(self,x,y,w,h,label)
 		
+#CHANGE BUTTONS TO FLAT BOXES
 	
 class Grid(Fl_Double_Window):
 	def butcb(self, wid):
 		wid.color(FL_BLUE)
-		
+		livecells.append(wid)
+		Cell.alive=True
 		
 		
 	def startcb(self, wid):
 		self.pausebut.value(0)
-		Cell.alive=True
 		contact=0
 		born=[]
 		kill=[]
@@ -24,17 +25,10 @@ class Grid(Fl_Double_Window):
 			born=[]
 			kill=[]
 			livecells=[]
-			for row in range(len(self.bl)):
-				for column in range(len(self.bl)):
-					
-					if self.bl[row][column].color()==216:
-						
-						contact=0
-						Cell.alive=True
-						livecells.append(self.bl[row][column])
-						
-						
-						for r,c in self.area:
+			contact=0
+			for row in range(len(livecells)):
+				for column in range(len(livecells[cell]))			
+					for r,c in self.area:
 							
 							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
 								continue
