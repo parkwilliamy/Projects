@@ -1,26 +1,33 @@
 from fltk import *
 
 class Cell(Fl_Button):
-	alive=True
+	alive=False
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Button.__init__(self,x,y,w,h,label)
 		
 	
 class Grid(Fl_Double_Window):
 	def butcb(self, wid):
-		wid.color(FL_YELLOW)
+		wid.color(FL_BLUE)
+		
+		
 		
 	def startcb(self, wid):
+		self.pausebut.value(0)
+		Cell.alive=True
 		contact=0
 		born=[]
 		kill=[]
 		livecells=[]
 		
 		while Cell.alive == True:
+			born=[]
+			kill=[]
+			livecells=[]
 			for row in range(len(self.bl)):
 				for column in range(len(self.bl)):
 					
-					if self.bl[row][column].color()==95:
+					if self.bl[row][column].color()==216:
 						
 						contact=0
 						Cell.alive=True
@@ -32,7 +39,7 @@ class Grid(Fl_Double_Window):
 							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
 								continue
 								
-							if self.bl[row+r][column+c].color()==95:
+							if self.bl[row+r][column+c].color()==216:
 								contact+=1
 									
 										
@@ -51,17 +58,15 @@ class Grid(Fl_Double_Window):
 							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
 								continue
 								
-							if self.bl[row+r][column+c].color()==FL_YELLOW:
+							if self.bl[row+r][column+c].color()==FL_BLUE:
 								contact+=1	
 									
 						if contact == 3:
 							born.append(self.bl[row][column])
-							
 									
 						
 			for cell in born:
-				cell.color(FL_YELLOW)
-				livecells.append(cell)
+				cell.color(FL_BLUE)
 				cell.redraw()
 			
 			
@@ -70,6 +75,7 @@ class Grid(Fl_Double_Window):
 				livecells.remove(cell)
 				cell.redraw()
 				
+				
 			
 				
 			if len(livecells) == 0:
@@ -77,9 +83,19 @@ class Grid(Fl_Double_Window):
 						
 			Fl.check()	
 			
-			
-			
-		
+	def pausecb(self, wid):
+		Cell.alive = False
+		self.startbut.value(0)
+	
+	def clearcb(self, wid):
+		Cell.alive = False
+		self.startbut.value(0)
+		self.pausebut.value(0)
+		for row in range(len(self.bl)):
+				for column in range(len(self.bl)):
+					self.bl[row][column].color(FL_BACKGROUND_COLOR)
+					
+		self.redraw()
 		
 		
 	def __init__(self,x,y,w,h,label=None):
@@ -101,8 +117,12 @@ class Grid(Fl_Double_Window):
 			self.bl.append(self.xcord)
 				
 				
-		self.startbut=Cell(800,0,200,80, 'Start')
+		self.startbut=Fl_Light_Button(800,0,200,80, 'Start')
 		self.startbut.callback(self.startcb)
+		self.pausebut=Fl_Light_Button(800,100,200,80, 'Pause')
+		self.pausebut.callback(self.pausecb)
+		self.clearbut=Cell(800,200,200,80,'Clear')
+		self.clearbut.callback(self.clearcb)
 		
 		self.end()
 		self.show()
@@ -116,7 +136,7 @@ h=800
 	
 game=Grid(x,y,w,h)
 
-Fl_scheme('gltk+')
+Fl_scheme('gtk+')
 
 Fl.run()
 #if cell touches less than 2 cells, dies
