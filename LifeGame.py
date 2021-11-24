@@ -5,17 +5,28 @@ class Cell(Fl_Button):
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Button.__init__(self,x,y,w,h,label)
 		
-#CHANGE BUTTONS TO FLAT BOXES
 	
 class Grid(Fl_Double_Window):
+	
+	running=False
+	
+	
+	'''Creates the cells'''
 	def butcb(self, wid):
 		wid.color(FL_BLUE)
-		livecells.append(wid)
 		Cell.alive=True
-		
-		
+		self.startbut.activate()
+		if Grid.running==False:
+			self.lexbut.deactivate()
+	
+	'''Start button'''	
 	def startcb(self, wid):
-		self.pausebut.value(0)
+		wid.label('Pause')
+		Grid.running=Cell.alive
+		self.clicks+=1
+		if self.clicks % 2 == 0:
+			self.pausecb()
+			Grid.running=False
 		contact=0
 		born=[]
 		kill=[]
@@ -25,10 +36,16 @@ class Grid(Fl_Double_Window):
 			born=[]
 			kill=[]
 			livecells=[]
-			contact=0
-			for row in range(len(livecells)):
-				for column in range(len(livecells[cell]))			
-					for r,c in self.area:
+			for row in range(len(self.bl)):
+				for column in range(len(self.bl)):
+					
+					if self.bl[row][column].color()==216:
+						
+						contact=0
+						livecells.append(self.bl[row][column])
+						
+						
+						for r,c in self.area:
 							
 							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
 								continue
@@ -61,41 +78,60 @@ class Grid(Fl_Double_Window):
 						
 			for cell in born:
 				cell.color(FL_BLUE)
-				cell.redraw()
+				
+			self.redraw()
 			
 			
 			for cell in kill:
 				cell.color(FL_BACKGROUND_COLOR)
 				livecells.remove(cell)
-				cell.redraw()
-				
-				
 			
+			self.redraw()
 				
 			if len(livecells) == 0:
 				Cell.alive = False
+				self.lexbut.activate()
+				self.startbut.deactivate()
+				self.pausecb()
+				self.clicks=0
 						
 			Fl.check()	
 			
-	def pausecb(self, wid):
-		Cell.alive = False
+	'''Pause button'''		
+	def pausecb(self):
+		self.startbut.label('Start')
 		self.startbut.value(0)
-	
+		
+	'''Clear button'''
 	def clearcb(self, wid):
-		Cell.alive = False
-		self.startbut.value(0)
-		self.pausebut.value(0)
+		Cell.alive=False
+		self.clicks=0
+		self.pausecb()
+		self.lexbut.activate()
+		self.startbut.deactivate()
 		for row in range(len(self.bl)):
 				for column in range(len(self.bl)):
 					self.bl[row][column].color(FL_BACKGROUND_COLOR)
 					
 		self.redraw()
 		
+	'''Creates glider in middle of grid'''	
+	def lexcb(self, wid):
+		
+		self.clearcb(wid)
+		for r,c in self.lexcords:
+			self.bl[r][c].color(FL_BLUE)
+			
+		self.redraw()
+		self.startbut.activate()
+		Cell.alive=True
 		
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self, x, y, w, h, label)
 		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+		self.lexcords=[(38,40),(39,41),(40,39),(40,40),(40,41)]
 		self.width=10
+		self.clicks=0
 		self.bl=[]
 		self.begin()
 		
@@ -103,20 +139,21 @@ class Grid(Fl_Double_Window):
 			self.xcord=[]
 			for x in range(80):
 				self.but=Cell(x*self.width, y*self.width, self.width,self.width)
+				self.but.box(FL_FLAT_BOX)
 				self.xcord.append(self.but)
 				self.xcord[-1].callback(self.butcb)
 				
-				
-			
 			self.bl.append(self.xcord)
 				
 				
 		self.startbut=Fl_Light_Button(800,0,200,80, 'Start')
 		self.startbut.callback(self.startcb)
-		self.pausebut=Fl_Light_Button(800,100,200,80, 'Pause')
-		self.pausebut.callback(self.pausecb)
-		self.clearbut=Cell(800,200,200,80,'Clear')
+		self.clearbut=Fl_Button(800,100,200,80, 'Clear')
 		self.clearbut.callback(self.clearcb)
+		self.lexbut=Fl_Button(800,200,200,80, 'Glider')
+		self.lexbut.callback(self.lexcb)
+		self.startbut.deactivate()
+		
 		
 		self.end()
 		self.show()
@@ -127,13 +164,10 @@ y=Fl.h()//2-400
 w=1000
 h=800		
 
-	
 game=Grid(x,y,w,h)
 
 Fl_scheme('gtk+')
 
 Fl.run()
-#if cell touches less than 2 cells, dies
-#if cell touches 2 or 3 cells, lives
-#if cell touches 4 or more cells, dies
-#if empty space touches 3 cells, born
+
+
