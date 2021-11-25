@@ -126,6 +126,12 @@ class Grid(Fl_Double_Window):
 		self.startbut.activate()
 		Cell.alive=True
 		
+	def draw(self):
+		Fl_Double_Window.draw(self)
+		
+		fl_color(FL_BLACK)
+		fl_line(800,0,800,800)
+		
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self, x, y, w, h, label)
 		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)] #list of positions relative to selected cell to know whether selected cell is in contact with any
@@ -169,3 +175,4 @@ game=Grid(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
+
