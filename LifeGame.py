@@ -8,58 +8,61 @@ class Cell(Fl_Button):
 	
 class Grid(Fl_Double_Window):
 	
-	running=False
+	running=False #running = True if simulation is running
 	
 	
 	'''Creates the cells'''
-	def butcb(self, wid):
+	def borncb(self, wid):
 		wid.color(FL_BLUE)
 		Cell.alive=True
-		self.startbut.activate()
-		if Grid.running==False:
+		self.startbut.activate() 
+		if Grid.running==False:  
 			self.lexbut.deactivate()
 	
 	'''Start button'''	
 	def startcb(self, wid):
-		wid.label('Pause')
-		Grid.running=Cell.alive
+		wid.label('Pause') #changes startbut to pausebut
+		Grid.running=True
 		self.clicks+=1
-		if self.clicks % 2 == 0:
+		if self.clicks % 2 == 0: #if click num is even, change back to startbut
 			self.pausecb()
-			Grid.running=False
-		contact=0
-		born=[]
-		kill=[]
-		livecells=[]
+			Grid.running=False #pauses simulation
+			
 		
-		while Cell.alive == True:
-			born=[]
+		contact=0 #number of cells the selected cell in 2d list is touching 
+		born=[] #the locations of where cells will be birthed
+		kill=[] #the locations of where cells will be killed
+		livecells=[] #list of currently live cells on grid
+		
+		while Grid.running == True:
+			born=[] 
 			kill=[]
 			livecells=[]
-			for row in range(len(self.bl)):
-				for column in range(len(self.bl)):
+			for row in range(len(self.bl)): #iterates over each row
+				for column in range(len(self.bl)): #iterates over each column
 					
-					if self.bl[row][column].color()==216:
+					if self.bl[row][column].color()==216: #if cell is alive
 						
 						contact=0
 						livecells.append(self.bl[row][column])
 						
 						
-						for r,c in self.area:
+						for r,c in self.area: 
 							
-							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
+							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79: #edge cases
 								continue
 								
-							if self.bl[row+r][column+c].color()==216:
-								contact+=1
+							if self.bl[row+r][column+c].color()==216: #if a cell within the range of main cell is alive,
+								contact+=1 #then it is a cell in contact with the main cell
 									
 										
-										
-						if contact < 2 or contact >= 4:
+						'''Kill rule'''				
+						if contact < 2 or contact >= 4: 
 							kill.append(self.bl[row][column]) #adds the cell to be killed
 							
 						
-					else:
+					else: #if cell is not alive
+						
 						contact=0
 						
 						
@@ -71,7 +74,8 @@ class Grid(Fl_Double_Window):
 								
 							if self.bl[row+r][column+c].color()==FL_BLUE:
 								contact+=1	
-									
+						
+						'''Birthing rule'''			
 						if contact == 3:
 							born.append(self.bl[row][column])
 									
@@ -84,16 +88,13 @@ class Grid(Fl_Double_Window):
 			
 			for cell in kill:
 				cell.color(FL_BACKGROUND_COLOR)
-				livecells.remove(cell)
+				livecells.remove(cell) 
 			
 			self.redraw()
-				
+			
+			'''Resets everything'''	
 			if len(livecells) == 0:
-				Cell.alive = False
-				self.lexbut.activate()
-				self.startbut.deactivate()
-				self.pausecb()
-				self.clicks=0
+				self.clearcb(wid)
 						
 			Fl.check()	
 			
@@ -102,14 +103,14 @@ class Grid(Fl_Double_Window):
 		self.startbut.label('Start')
 		self.startbut.value(0)
 		
-	'''Clear button'''
+	'''Clears all cells and resets everything'''
 	def clearcb(self, wid):
-		Cell.alive=False
+		Grid.running=False #simulation ends when all cells are cleared
 		self.clicks=0
 		self.pausecb()
 		self.lexbut.activate()
 		self.startbut.deactivate()
-		for row in range(len(self.bl)):
+		for row in range(len(self.bl)): 
 				for column in range(len(self.bl)):
 					self.bl[row][column].color(FL_BACKGROUND_COLOR)
 					
@@ -117,7 +118,6 @@ class Grid(Fl_Double_Window):
 		
 	'''Creates glider in middle of grid'''	
 	def lexcb(self, wid):
-		
 		self.clearcb(wid)
 		for r,c in self.lexcords:
 			self.bl[r][c].color(FL_BLUE)
@@ -128,8 +128,8 @@ class Grid(Fl_Double_Window):
 		
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self, x, y, w, h, label)
-		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
-		self.lexcords=[(38,40),(39,41),(40,39),(40,40),(40,41)]
+		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)] #list of positions relative to selected cell to know whether selected cell is in contact with any
+		self.lexcords=[(38,40),(39,41),(40,39),(40,40),(40,41)] #glider coords
 		self.width=10
 		self.clicks=0
 		self.bl=[]
@@ -141,7 +141,7 @@ class Grid(Fl_Double_Window):
 				self.but=Cell(x*self.width, y*self.width, self.width,self.width)
 				self.but.box(FL_FLAT_BOX)
 				self.xcord.append(self.but)
-				self.xcord[-1].callback(self.butcb)
+				self.xcord[-1].callback(self.borncb)
 				
 			self.bl.append(self.xcord)
 				
@@ -169,5 +169,3 @@ game=Grid(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
-
-
