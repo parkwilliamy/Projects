@@ -126,11 +126,15 @@ class Grid(Fl_Double_Window):
 		self.startbut.activate()
 		Cell.alive=True
 		
+	'''Draws grid'''	
 	def draw(self):
 		Fl_Double_Window.draw(self)
-		
+		sep=10
 		fl_color(FL_BLACK)
-		fl_line(800,0,800,800)
+		for x in range(0, 801, sep):
+			fl_line(x,0,x,800)
+		for y in range(0, 801, sep):
+			fl_line(0,y,800,y)
 		
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self, x, y, w, h, label)
@@ -175,4 +179,3 @@ game=Grid(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
-
