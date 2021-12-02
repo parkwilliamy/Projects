@@ -1,0 +1,43 @@
+from fltk import *
+import random
+
+class FloodGame(Fl_Window):
+	def colorcb(self, wid):
+		self.n+=1
+		self.outp.value=self.n
+	
+	
+	
+	def __init__(self,x,y,w,h,label=None):
+		Fl_Window.__init__(self, x, y, w, h, label)
+		self.n=0
+		self.width=25
+		self.bl=[]
+		self.colorbl=[]
+		self.outp=Fl_Output(40, 335, 100, 40)
+		
+		for x in range(6):
+			self.colorbut=Fl_Button(40, 25+52*x, 100, 40)
+			self.colorbl.append(self.colorbut)
+			self.colorbut.callback(self.colorcb)
+		
+		for y in range(1,15):
+			self.xcord=[]
+			
+			for x in range(7,21):
+				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
+				self.but.box(FL_FLAT_BOX)
+				self.xcord.append(self.but)
+				
+			self.bl.append(self.xcord)
+		
+		
+x=Fl.w()//2-225
+y=Fl.h()//2-200
+w=550
+h=400
+
+game=FloodGame(x,y,w,h, 'Flood-It')
+
+game.show()
+Fl.run()
