@@ -3,14 +3,29 @@ import random
 
 class FloodGame(Fl_Window):
 	def colorcb(self, wid):
-		self.n+=1
-		self.outp.value=self.n
+		self.attempts+=1
+		self.outp.value(str(self.attempts))
 	
-	
+	def checkarea(self, wid):
+		idx=self.bl.index(wid)
+		if self.bl[idx].color()==self.bl[idx-1].color():
+			self.checkarea(self.bl[idx-1])	
+			
+		if self.bl[idx].color()==self.bl[idx+1].color():
+			self.checkarea(self.bl[idx+1])		
+			
+		if self.bl[idx].color()==self.bl[idx-14].color():
+			self.checkarea(self.bl[idx-14])		
+			
+		if self.bl[idx].color()==self.bl[idx-+14].color():
+			self.checkarea(self.bl[idx+14])		
+		
 	
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Window.__init__(self, x, y, w, h, label)
-		self.n=0
+		self.flooded=[]
+		self.colors=[88,91, 94,102,145,183]
+		self.attempts=0
 		self.width=25
 		self.bl=[]
 		self.colorbl=[]
@@ -19,17 +34,27 @@ class FloodGame(Fl_Window):
 		for x in range(6):
 			self.colorbut=Fl_Button(40, 25+52*x, 100, 40)
 			self.colorbl.append(self.colorbut)
+			self.colorbut.color(self.colors[x])
 			self.colorbut.callback(self.colorcb)
 		
 		for y in range(1,15):
-			self.xcord=[]
+			#self.xcord=[]
 			
 			for x in range(7,21):
+				color=self.colors[random.randrange(len(self.colors))]
 				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
+				self.but.color(color)
 				self.but.box(FL_FLAT_BOX)
-				self.xcord.append(self.but)
-				
-			self.bl.append(self.xcord)
+				#self.xcord.append(self.but)
+				self.bl.append(self.but)
+			
+			#self.bl.append(self.xcord)
+			
+			
+		self.flooded.append(self.bl[0])
+		self.flooded[0].callback(self.checkarea)
+		self.flooded[0].do_callback()
+		
 		
 		
 x=Fl.w()//2-225
@@ -41,3 +66,10 @@ game=FloodGame(x,y,w,h, 'Flood-It')
 
 game.show()
 Fl.run()
+
+
+#flooded initially consists of the square that has color x along with any other squares with color x
+#when you click on a color button, flooded list adds any other squares that are matching the flooded squares' colors to it
+#all squares in flooded change color when color button is pressed
+#recursive function that checks area around squares
+
