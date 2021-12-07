@@ -2,23 +2,41 @@ from fltk import *
 import random
 
 class FloodGame(Fl_Window):
-	def colorcb(self, wid):
+	def colorcb(self, wid, color):
 		self.attempts+=1
+		for but in self.flooded:
+			but.box(FL_DOWN_BOX)
+			but.color(color)
+			
+		self.redraw()
+		self.checkarea(self.
 		self.outp.value(str(self.attempts))
 	
-	def checkarea(self, wid):
-		idx=self.bl.index(wid)
-		if self.bl[idx].color()==self.bl[idx-1].color():
-			self.checkarea(self.bl[idx-1])	
-			
-		if self.bl[idx].color()==self.bl[idx+1].color():
-			self.checkarea(self.bl[idx+1])		
-			
-		if self.bl[idx].color()==self.bl[idx-14].color():
-			self.checkarea(self.bl[idx-14])		
-			
-		if self.bl[idx].color()==self.bl[idx-+14].color():
-			self.checkarea(self.bl[idx+14])		
+	def checkarea(self, flooded):
+		idx=self.bl.index(flooded)
+		
+		try:
+			if self.bl[idx].color()==self.bl[idx-1].color():
+				if self.bl[idx-1] not in self.flooded:
+					self.flooded.append(self.bl[idx-1])
+					self.checkarea(self.flooded[-1])
+				
+			if self.bl[idx].color()==self.bl[idx+1].color():
+				if self.bl[idx+1] not in self.flooded:
+					self.flooded.append(self.bl[idx+1])
+					self.checkarea(self.flooded[-1])		
+				
+			if self.bl[idx].color()==self.bl[idx-14].color():
+				if self.bl[idx-14] not in self.flooded:
+					self.flooded.append(self.bl[idx-14])
+					self.checkarea(self.flooded[-1])	
+				
+			if self.bl[idx].color()==self.bl[idx-+14].color():
+				if self.bl[idx+14] not in self.flooded:
+					self.flooded.append(self.bl[idx+14])
+					self.checkarea(self.flooded[-1])		
+		except:
+			print('fail')
 		
 	
 	def __init__(self,x,y,w,h,label=None):
@@ -35,25 +53,21 @@ class FloodGame(Fl_Window):
 			self.colorbut=Fl_Button(40, 25+52*x, 100, 40)
 			self.colorbl.append(self.colorbut)
 			self.colorbut.color(self.colors[x])
-			self.colorbut.callback(self.colorcb)
+			self.colorbut.callback(self.colorcb, self.colors[x])
 		
 		for y in range(1,15):
-			#self.xcord=[]
-			
 			for x in range(7,21):
 				color=self.colors[random.randrange(len(self.colors))]
-				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
-				self.but.color(color)
-				self.but.box(FL_FLAT_BOX)
-				#self.xcord.append(self.but)
-				self.bl.append(self.but)
+				self.box=Fl_Box(x*self.width, y*self.width, self.width,self.width)
+				self.box.color(color)
+				self.box.box(FL_FLAT_BOX)
+				self.bl.append(self.box)
 			
-			#self.bl.append(self.xcord)
 			
 			
 		self.flooded.append(self.bl[0])
-		self.flooded[0].callback(self.checkarea)
-		self.flooded[0].do_callback()
+		self.flooded[0].callback(self.checkarea, self.flooded)
+		self.checkarea(self.flooded)
 		
 		
 		
@@ -72,4 +86,5 @@ Fl.run()
 #when you click on a color button, flooded list adds any other squares that are matching the flooded squares' colors to it
 #all squares in flooded change color when color button is pressed
 #recursive function that checks area around squares
+
 
