@@ -4,39 +4,64 @@ import random
 class FloodGame(Fl_Window):
 	def colorcb(self, wid, color):
 		self.attempts+=1
+		self.outp.value(str(self.attempts))
 		for but in self.flooded:
 			but.box(FL_DOWN_BOX)
 			but.color(color)
 			
 		self.redraw()
-		self.checkarea(self.
-		self.outp.value(str(self.attempts))
-	
-	def checkarea(self, flooded):
-		idx=self.bl.index(flooded)
+		self.checkarea()
 		
-		try:
-			if self.bl[idx].color()==self.bl[idx-1].color():
-				if self.bl[idx-1] not in self.flooded:
-					self.flooded.append(self.bl[idx-1])
-					self.checkarea(self.flooded[-1])
+		
+		
+		if self.attempts==25:
+			
+			for x in range(len(self.bl)):
+				self.bl[x].deactivate()
 				
-			if self.bl[idx].color()==self.bl[idx+1].color():
-				if self.bl[idx+1] not in self.flooded:
-					self.flooded.append(self.bl[idx+1])
-					self.checkarea(self.flooded[-1])		
+			for y in range(len(self.colorbl)):
+				self.colorbl[y].deactivate()
 				
-			if self.bl[idx].color()==self.bl[idx-14].color():
-				if self.bl[idx-14] not in self.flooded:
-					self.flooded.append(self.bl[idx-14])
-					self.checkarea(self.flooded[-1])	
-				
-			if self.bl[idx].color()==self.bl[idx-+14].color():
-				if self.bl[idx+14] not in self.flooded:
-					self.flooded.append(self.bl[idx+14])
-					self.checkarea(self.flooded[-1])		
-		except:
-			print('fail')
+			fl_message('You lost!')
+			self.outp.value('Failure')
+			
+	def checkarea(self):
+		for x in range(len(self.flooded)):
+			i=self.bl.index(self.flooded[x])
+			
+			
+			if i%14!=0:
+				if self.flooded[-1].color()==self.bl[i-1].color():
+					if self.bl[i-1] not in self.flooded:
+						self.flooded.append(self.bl[i-1])
+						self.bl[i-1].box(FL_DOWN_BOX)
+						self.checkarea()
+						
+			
+						
+			if (i+1)%14!=0:
+				if self.flooded[-1].color()==self.bl[i+1].color():
+					if self.bl[i+1] not in self.flooded:
+						self.flooded.append(self.bl[i+1])
+						self.bl[i+1].box(FL_DOWN_BOX)
+						self.checkarea()	
+						
+			if i-14 > -1:		
+						
+				if self.flooded[-1].color()==self.bl[i-14].color():
+					if self.bl[i-14] not in self.flooded:
+						self.flooded.append(self.bl[i-14])
+						self.bl[i-14].box(FL_DOWN_BOX)
+						self.checkarea()
+						
+			if i+15 < 197:
+					
+				if self.flooded[-1].color()==self.bl[i+14].color():
+					if self.bl[i+14] not in self.flooded:
+						self.flooded.append(self.bl[i+14])
+						self.bl[i+14].box(FL_DOWN_BOX)
+						self.checkarea()
+						
 		
 	
 	def __init__(self,x,y,w,h,label=None):
@@ -58,17 +83,16 @@ class FloodGame(Fl_Window):
 		for y in range(1,15):
 			for x in range(7,21):
 				color=self.colors[random.randrange(len(self.colors))]
-				self.box=Fl_Box(x*self.width, y*self.width, self.width,self.width)
-				self.box.color(color)
-				self.box.box(FL_FLAT_BOX)
-				self.bl.append(self.box)
-			
+				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
+				self.but.color(color)
+				self.but.box(FL_FLAT_BOX)
+				self.bl.append(self.but)
+		
 			
 			
 		self.flooded.append(self.bl[0])
-		self.flooded[0].callback(self.checkarea, self.flooded)
-		self.checkarea(self.flooded)
-		
+		self.flooded[-1].box(FL_DOWN_BOX)
+		self.checkarea()
 		
 		
 x=Fl.w()//2-225
@@ -79,12 +103,8 @@ h=400
 game=FloodGame(x,y,w,h, 'Flood-It')
 
 game.show()
+
 Fl.run()
 
-
-#flooded initially consists of the square that has color x along with any other squares with color x
-#when you click on a color button, flooded list adds any other squares that are matching the flooded squares' colors to it
-#all squares in flooded change color when color button is pressed
-#recursive function that checks area around squares
 
 
