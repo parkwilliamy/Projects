@@ -2,19 +2,31 @@ from fltk import *
 import random
 
 class FloodGame(Fl_Window):
+	
+	'''Callback function for the color buttons'''
 	def colorcb(self, wid, color):
+		win=False #false until game is won
 		self.attempts+=1
 		self.outp.value(str(self.attempts))
-		for but in self.flooded:
+		for but in self.flooded: #flooded boxes are changed to new color
 			but.box(FL_DOWN_BOX)
 			but.color(color)
 			
 		self.redraw()
-		self.checkarea()
+		self.checkarea() #checks squares around the new colors of flooded squares
 		
+		if len(self.flooded)==196: #if whole grid is flooded
+			win=True
+			fl_message(f'You won in {self.attempts} moves!')
+			self.outp.value('Winner!')
+			
+			for x in range(len(self.bl)):
+				self.bl[x].deactivate()
+				
+			for y in range(len(self.colorbl)):
+				self.colorbl[y].deactivate()
 		
-		
-		if self.attempts==25:
+		if self.attempts==25 and win==False:
 			
 			for x in range(len(self.bl)):
 				self.bl[x].deactivate()
@@ -25,28 +37,31 @@ class FloodGame(Fl_Window):
 			fl_message('You lost!')
 			self.outp.value('Failure')
 			
+			
+			
+	'''Function to check if nearby squares match color of flooded squares'''		
 	def checkarea(self):
-		for x in range(len(self.flooded)):
-			i=self.bl.index(self.flooded[x])
+		for x in range(len(self.flooded)): #iterates over flooded squares
+			i=self.bl.index(self.flooded[x]) #location of the flooded square in bl
 			
 			
-			if i%14!=0:
-				if self.flooded[-1].color()==self.bl[i-1].color():
-					if self.bl[i-1] not in self.flooded:
-						self.flooded.append(self.bl[i-1])
+			if i%14!=0: #edge case 
+				if self.flooded[-1].color()==self.bl[i-1].color(): #if last square in flooded list matches color next to it
+					if self.bl[i-1] not in self.flooded: #checks for duplicates
+						self.flooded.append(self.bl[i-1]) 
 						self.bl[i-1].box(FL_DOWN_BOX)
-						self.checkarea()
+						self.checkarea() #recurses function
 						
 			
 						
-			if (i+1)%14!=0:
+			if (i+1)%14!=0: #edge case
 				if self.flooded[-1].color()==self.bl[i+1].color():
 					if self.bl[i+1] not in self.flooded:
 						self.flooded.append(self.bl[i+1])
 						self.bl[i+1].box(FL_DOWN_BOX)
 						self.checkarea()	
 						
-			if i-14 > -1:		
+			if i-14 > -1: #edge case		
 						
 				if self.flooded[-1].color()==self.bl[i-14].color():
 					if self.bl[i-14] not in self.flooded:
@@ -54,7 +69,7 @@ class FloodGame(Fl_Window):
 						self.bl[i-14].box(FL_DOWN_BOX)
 						self.checkarea()
 						
-			if i+15 < 197:
+			if i+15 < 197: #edge case
 					
 				if self.flooded[-1].color()==self.bl[i+14].color():
 					if self.bl[i+14] not in self.flooded:
@@ -67,20 +82,20 @@ class FloodGame(Fl_Window):
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Window.__init__(self, x, y, w, h, label)
 		self.flooded=[]
-		self.colors=[88,91, 94,102,145,183]
+		self.colors=[88,91, 94,102,145,183] #colors for grid
 		self.attempts=0
 		self.width=25
 		self.bl=[]
-		self.colorbl=[]
+		self.colorbl=[] #list of buttons that change flooded squares' colors
 		self.outp=Fl_Output(40, 335, 100, 40)
 		
-		for x in range(6):
+		for x in range(6): #creates color buttons
 			self.colorbut=Fl_Button(40, 25+52*x, 100, 40)
 			self.colorbl.append(self.colorbut)
 			self.colorbut.color(self.colors[x])
 			self.colorbut.callback(self.colorcb, self.colors[x])
 		
-		for y in range(1,15):
+		for y in range(1,15): #creates grid
 			for x in range(7,21):
 				color=self.colors[random.randrange(len(self.colors))]
 				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
@@ -105,6 +120,7 @@ game=FloodGame(x,y,w,h, 'Flood-It')
 game.show()
 
 Fl.run()
+
 
 
 
