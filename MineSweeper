@@ -1,0 +1,74 @@
+from fltk import *
+import random
+
+#MUST BE RESIZABLE
+class MineSweeper(Fl_Window):
+	def __init__(self,x,y,w,h,label=None):
+		Fl_Window.__init__(self, x, y, w, h, label)
+		
+		usednums=[]
+		randnum=0
+		randnum2=0
+		self.bl=[]
+		self.width=50
+		self.mines=[]
+		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+		
+		for y in range(10):
+			self.xcord=[]
+			for x in range(10):
+				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
+				self.xcord.append(self.but)
+				
+				
+			self.bl.append(self.xcord)
+				
+		
+		for x in range(10):
+			while (randnum,randnum2) in usednums:
+				randnum=random.randrange(10)
+				randnum2=random.randrange(10)
+				
+			
+			
+			self.bl[randnum][randnum2].label('@circle')
+			usednums.append((randnum,randnum2))
+			self.mines.append(self.bl[randnum][randnum2])
+		
+			
+		for row in range(len(self.bl)):
+			for column in range(len(self.bl)):
+				if self.bl[row][column] not in self.mines:
+					
+					contact=0
+					
+					for r,c in self.area: 
+						
+						if row+r < 0 or row+r > 9 or column+c < 0 or column+c > 9: #edge cases
+							continue
+							
+						if self.bl[row+r][column+c] in self.mines: #if a space is touching a mine
+							contact+=1
+					
+					self.bl[row][column].box(FL_DOWN_BOX)
+					
+					if contact == 0:
+						continue
+								
+					self.bl[row][column].label(str(contact))
+					
+			
+
+		self.startbut=Fl_Button(500,0,150,70, 'Start')
+
+
+x=Fl.w()//2-250
+y=Fl.h()//2-250
+w=650
+h=500
+
+game=MineSweeper(x,y,w,h, 'MineSweeper')
+
+game.show()
+
+Fl.run()
