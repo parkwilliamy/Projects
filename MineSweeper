@@ -10,6 +10,7 @@ class MineSweeper(Fl_Window):
 		self.marked=[] #list of marked flags
 		self.countbuts=[] #list of squares touching at least one mine
 		self.usednums=[] #list of numbers already
+		self.mnums=[]
 		self.randnum=-1
 		self.randnum2=-1
 		self.bl=[]
@@ -155,7 +156,8 @@ class MineSweeper(Fl_Window):
 									
 									
 								self.countbuts.append(self.bl[row][column])			
-								self.bl[row][column].label(str(contact))
+								#self.bl[row][column].label(str(contact))
+								self.mnums.append(str(contact))
 								
 								if contact == 1:
 									self.bl[row][column].labelcolor(FL_RED)
@@ -168,26 +170,25 @@ class MineSweeper(Fl_Window):
 								
 								if contact == 4:
 									self.bl[row][column].labelcolor(FL_YELLOW)	
-								
-								self.bl[row][column].labelsize(1)
 	
 					
 				if wid in self.blank: #if clicked square is blank
+					if len(self.on) > 1:
+						self.on.append(wid)
+						
 					self.checkarea(wid)
 					wid.when(0)
-					self.on.append(wid)
+					
 					print(len(self.on))
 					
 				elif wid in self.countbuts and wid not in self.on: #if clicked square is numsquare
-					wid.labelsize(40)
+					wid.label(self.bl.index(self.countbuts
 					self.on.append(wid)				
-					
 					wid.when(0)
-					print(len(self.on))
 							
 				if len(self.on) == 90:
 						for x in self.mines:
-							x.label('')
+							x.label('@circle')
 							x.labelcolor(FL_BLACK)
 							x.labelsize(25)
 				
@@ -196,7 +197,7 @@ class MineSweeper(Fl_Window):
 				elif wid in self.mines: #if clicked square is a mine
 					for x in self.mines:
 						x.label('@circle')
-						x.labelcolor(FL_BLACK)
+						x.labelcolor(FL_RED)
 						x.labelsize(25)
 						
 					fl_message('You lose!')
@@ -211,3 +212,4 @@ game=MineSweeper(x,y,w,h, 'MineSweeper')
 game.show()
 Fl_scheme('gltk')
 Fl.run()
+
