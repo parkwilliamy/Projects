@@ -1,181 +1,214 @@
 from fltk import *
+import random
 
-class Cell(Fl_Button):
-	alive=False
+#MUST BE RESIZABLE
+class MineSweeper(Fl_Window):
 	def __init__(self,x,y,w,h,label=None):
-		Fl_Button.__init__(self,x,y,w,h,label)
-		
-	
-class Grid(Fl_Double_Window):
-	
-	running=False #running = True if simulation is running
-	
-	
-	'''Creates the cells'''
-	def borncb(self, wid):
-		wid.color(FL_BLUE)
-		Cell.alive=True
-		self.startbut.activate() 
-		if Grid.running==False:  
-			self.lexbut.deactivate()
-	
-	'''Start button'''	
-	def startcb(self, wid):
-		wid.label('Pause') #changes startbut to pausebut
-		Grid.running=True
-		self.clicks+=1
-		if self.clicks % 2 == 0: #if click num is even, change back to startbut
-			self.pausecb()
-			Grid.running=False #pauses simulation
-			
-		
-		contact=0 #number of cells the selected cell in 2d list is touching 
-		born=[] #the locations of where cells will be birthed
-		kill=[] #the locations of where cells will be killed
-		livecells=[] #list of currently live cells on grid
-		
-		while Grid.running == True:
-			born=[] 
-			kill=[]
-			livecells=[]
-			for row in range(len(self.bl)): #iterates over each row
-				for column in range(len(self.bl)): #iterates over each column
-					
-					if self.bl[row][column].color()==216: #if cell is alive
-						
-						contact=0
-						livecells.append(self.bl[row][column])
-						
-						
-						for r,c in self.area: 
-							
-							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79: #edge cases
-								continue
-								
-							if self.bl[row+r][column+c].color()==216: #if a cell within the range of main cell is alive,
-								contact+=1 #then it is a cell in contact with the main cell
-									
-										
-						'''Kill rule'''				
-						if contact < 2 or contact >= 4: 
-							kill.append(self.bl[row][column]) #adds the cell to be killed
-							
-						
-					else: #if cell is not alive
-						
-						contact=0
-						
-						
-						
-						for r,c in self.area:
-							
-							if row+r < 0 or row+r > 79 or column+c < 0 or column+c > 79:
-								continue
-								
-							if self.bl[row+r][column+c].color()==FL_BLUE:
-								contact+=1	
-						
-						'''Birthing rule'''			
-						if contact == 3:
-							born.append(self.bl[row][column])
-									
-						
-			for cell in born:
-				cell.color(FL_BLUE)
-				
-			self.redraw()
-			
-			
-			for cell in kill:
-				cell.color(FL_BACKGROUND_COLOR)
-				livecells.remove(cell) 
-			
-			self.redraw()
-			
-			'''Resets everything'''	
-			if len(livecells) == 0:
-				self.clearcb(wid)
-						
-			Fl.check()	
-			
-	'''Pause button'''		
-	def pausecb(self):
-		self.startbut.label('Start')
-		self.startbut.value(0)
-		
-	'''Clears all cells and resets everything'''
-	def clearcb(self, wid):
-		Grid.running=False #simulation ends when all cells are cleared
-		self.clicks=0
-		self.pausecb()
-		self.lexbut.activate()
-		self.startbut.deactivate()
-		for row in range(len(self.bl)): 
-				for column in range(len(self.bl)):
-					self.bl[row][column].color(FL_BACKGROUND_COLOR)
-					
-		self.redraw()
-		
-	'''Creates glider in middle of grid'''	
-	def lexcb(self, wid):
-		self.clearcb(wid)
-		for r,c in self.lexcords:
-			self.bl[r][c].color(FL_BLUE)
-			
-		self.redraw()
-		self.startbut.activate()
-		Cell.alive=True
-		
-	'''Draws grid'''	
-	def draw(self):
-		Fl_Double_Window.draw(self)
-		sep=10
-		fl_color(FL_BLACK)
-		for x in range(0, 801, sep):
-			fl_line(x,0,x,800)
-		for y in range(0, 801, sep):
-			fl_line(0,y,800,y)
-		
-	def __init__(self,x,y,w,h,label=None):
-		Fl_Double_Window.__init__(self, x, y, w, h, label)
-		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)] #list of positions relative to selected cell to know whether selected cell is in contact with any
-		self.lexcords=[(38,40),(39,41),(40,39),(40,40),(40,41)] #glider coords
-		self.width=10
-		self.clicks=0
+		Fl_Window.__init__(self, x, y, w, h, label)
+		self.blank=[] #list of blank squares
+		self.on=[] #list of squares shown
+		self.marked=[] #list of marked flags
+		self.countbuts=[] #list of squares touching at least one mine
+		self.usednums=[] #list of numbers already
+		self.randnum=-1
+		self.randnum2=-1
 		self.bl=[]
+		self.width=50
+		self.mines=[]
+		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+		
 		self.begin()
 		
-		for y in range(80):
+		for y in range(10):
 			self.xcord=[]
-			for x in range(80):
-				self.but=Cell(x*self.width, y*self.width, self.width,self.width)
-				self.but.box(FL_FLAT_BOX)
+			for x in range(10):
+				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
+				if y%2==0:
+					if x%2==0:
+						self.but.color(111,69)
+					else:
+						self.but.color(110,69)
+					
+				if y%2==1:	
+					if x%2==1:
+						self.but.color(111,69)
+					else:
+						self.but.color(110,69)	
+					
 				self.xcord.append(self.but)
-				self.xcord[-1].callback(self.borncb)
+				self.but.callback(self.butcb)
+				
 				
 			self.bl.append(self.xcord)
 				
-				
-		self.startbut=Fl_Light_Button(800,0,200,80, 'Start')
-		self.startbut.callback(self.startcb)
-		self.clearbut=Fl_Button(800,100,200,80, 'Clear')
-		self.clearbut.callback(self.clearcb)
-		self.lexbut=Fl_Button(800,200,200,80, 'Glider')
-		self.lexbut.callback(self.lexcb)
-		self.startbut.deactivate()
-		
-		
 		self.end()
-		self.show()
+	
+	
+	
+	def index2d(self, L, v):
+		for i, x in enumerate(L):
+			if v in x:
+				return (i, x.index(v))
+	
+	
+	
+	def checkarea(self, wid): #checks squares around a blank square
+		i=self.index2d(self.bl, wid)
+		row=i[0]
+		column=i[1]
 		
+		for r,c in self.area:
+			contact=False
+			
+			if row+r < 0 or row+r > 9 or column+c < 0 or column+c > 9: #edge cases
+				continue	
+				
+					
+			if self.bl[row+r][column+c] in self.blank and self.bl[row+r][column+c] not in self.on:
+				contact=True
+			
+				
+			elif self.bl[row+r][column+c] in self.countbuts and self.bl[row+r][column+c] not in self.on:
+				self.bl[row+r][column+c].labelsize(40)
+				self.bl[row+r][column+c].color(174,115)
+				self.on.append(self.bl[row+r][column+c])
+				
+			if contact == False:
+				continue
+				
+			self.on.append(self.bl[row+r][column+c])
+			self.bl[row+r][column+c].color(174,115)
+			self.checkarea(self.bl[row+r][column+c])
+			
+		self.redraw()
+
+	
+	def butcb(self, wid):
 		
-x=Fl.w()//2-400
-y=Fl.h()//2-400	
-w=1000
-h=800		
+		if Fl.event_button() == FL_RIGHT_MOUSE:	
+			
+			
+			if wid not in self.on and wid not in self.marked:	
+			
+				
+				self.marked.append(wid)
+				wid.label('@>')
+				wid.labelsize(20)
+				wid.labelcolor(FL_RED)
+			
+			elif wid in self.marked:
+				wid.label('')
+				self.marked.remove(wid)
+			
+		else:
+			
+			if wid.label() != '@>':
+			
+				if wid not in self.on and wid not in self.mines:
+					wid.color(174,115)
+					wid.redraw()
+				
+				
+				if len(self.on)==0:
+					
+					self.on.append(wid)
+					
+					clickidx=self.index2d(self.bl, wid)
+					row2=clickidx[0]
+					column2=clickidx[1]
+					bsquares=[self.bl[row2][column2]]
+					
+					for r,c in self.area:
+						
+						if row2+r < 0 or row2+r > 9 or column2+c < 0 or column2+c > 9: #edge cases
+							continue
+							
+						bsquares.append(self.bl[row2+r][column2+c])
+					
+					
+					for x in range(10):
+						while (self.randnum,self.randnum2) in self.usednums or self.bl[self.randnum][self.randnum2] in bsquares:
+							self.randnum=random.randrange(10)
+							self.randnum2=random.randrange(10)
+						
+						self.usednums.append((self.randnum,self.randnum2))
+						self.mines.append(self.bl[self.randnum][self.randnum2])
+						
+					for row in range(len(self.bl)):
+						for column in range(len(self.bl)):
+							if self.bl[row][column] not in self.mines:
+								
+								contact=0
+								
+								for r,c in self.area: 
+									
+									if row+r < 0 or row+r > 9 or column+c < 0 or column+c > 9: #edge cases
+										continue
+										
+									if self.bl[row+r][column+c] in self.mines: #if a space is touching a mine
+										contact+=1
+								
+								
+								if contact == 0:
+									self.blank.append(self.bl[row][column])
+									continue
+									
+									
+								self.countbuts.append(self.bl[row][column])			
+								self.bl[row][column].label(str(contact))
+								
+								if contact == 1:
+									self.bl[row][column].labelcolor(FL_RED)
+								
+								if contact == 2:
+									self.bl[row][column].labelcolor(FL_DARK_GREEN)
+									
+								if contact == 3:
+									self.bl[row][column].labelcolor(FL_BLUE)	
+								
+								if contact == 4:
+									self.bl[row][column].labelcolor(FL_YELLOW)	
+								
+								self.bl[row][column].labelsize(1)
+	
+					
+				if wid in self.blank: #if clicked square is blank
+					self.checkarea(wid)
+					wid.when(0)
+					self.on.append(wid)
+					print(len(self.on))
+					
+				elif wid in self.countbuts and wid not in self.on: #if clicked square is numsquare
+					wid.labelsize(40)
+					self.on.append(wid)				
+					
+					wid.when(0)
+					print(len(self.on))
+							
+				if len(self.on) == 90:
+						for x in self.mines:
+							x.label('')
+							x.labelcolor(FL_BLACK)
+							x.labelsize(25)
+				
+						fl_message('You win!')	
+				
+				elif wid in self.mines: #if clicked square is a mine
+					for x in self.mines:
+						x.label('@circle')
+						x.labelcolor(FL_BLACK)
+						x.labelsize(25)
+						
+					fl_message('You lose!')
+		
+			
+x=Fl.w()//2-250
+y=Fl.h()//2-250
+w=500
+h=500
 
-game=Grid(x,y,w,h)
-
-Fl_scheme('gtk+')
-
+game=MineSweeper(x,y,w,h, 'MineSweeper')
+game.show()
+Fl_scheme('gltk')
 Fl.run()
+
