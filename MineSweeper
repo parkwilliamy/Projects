@@ -5,6 +5,12 @@ import random
 class MineSweeper(Fl_Window):
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Window.__init__(self, x, y, w, h, label)
+		self.running=True
+		self.sec=0 #first number on the clock
+		self.tens=0 #second number on the clock
+		self.min=0 #third number on the clock
+		self.tmin=0 #fourth number on the clock
+		self.time=0 #time shown
 		self.blank=[] #list of blank squares
 		self.on=[] #list of squares shown
 		self.marked=[] #list of marked flags
@@ -19,6 +25,8 @@ class MineSweeper(Fl_Window):
 		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
 		
 		self.begin()
+		
+		self.label('Time: 00:00')
 		
 		for y in range(10):
 			self.xcord=[]
@@ -44,15 +52,14 @@ class MineSweeper(Fl_Window):
 				
 		self.end()
 	
-	
-	
+	'''FUNCTION TO FIND INDICES OF ITEMS IN 2D LIST (like using list.index(element), but for 2d lists'''
 	def index2d(self, L, v):
 		for i, x in enumerate(L):
 			if v in x:
 				return (i, x.index(v))
 	
 	
-	
+	'''RECURSIVE FUNCTION FOR BLANK SQUARES'''
 	def checkarea(self, wid): #checks squares around a blank square
 		i=self.index2d(self.bl, wid)
 		row=i[0]
@@ -66,14 +73,16 @@ class MineSweeper(Fl_Window):
 				
 					
 			if self.bl[row+r][column+c] in self.blank and self.bl[row+r][column+c] not in self.on:
+				self.bl[row+r][column+c].label('')
 				contact=True
 			
 				
 			elif self.bl[row+r][column+c] in self.countbuts and self.bl[row+r][column+c] not in self.on:
+				self.bl[row+r][column+c].label(self.mnums[self.countbuts.index(self.bl[row+r][column+c])])
 				self.bl[row+r][column+c].labelsize(40)
 				self.bl[row+r][column+c].color(174,115)
 				self.on.append(self.bl[row+r][column+c])
-				
+						
 			if contact == False:
 				continue
 				
@@ -82,8 +91,42 @@ class MineSweeper(Fl_Window):
 			self.checkarea(self.bl[row+r][column+c])
 			
 		self.redraw()
+		
+		
+	def gameend(self, win):
+		if win==True:
+			fl_message(f'You won in a time of {self.time}!')
+		else:
+			fl_message('You lost!')
+		
+	'''TIMER FUNCTION'''
+	def timer(self):
+		if self.running==True:
+			self.time=(f'{self.tmin}{self.min}:{self.tens}{self.sec}')
+			self.label(f'Time: {self.time}')
+			
+			self.sec=self.sec+1
+			
+			if self.min==10:
+				self.min=0
+				self.tens=0
+				self.tmin+=1
+				
+			
+			if self.tens==6:
+				self.tens=0
+				self.sec=0
+				self.min+=1
+			
+			if self.sec%10==0 and self.sec != 0:
+				self.tens=self.tens+1
+				self.sec=0
+			
+			
+			Fl.add_timeout(1, self.timer)
+		
 
-	
+	'''CALLBACK FOR EACH BUTTON (ONLY FOR OFF BUTTONS)'''
 	def butcb(self, wid):
 		
 		if Fl.event_button() == FL_RIGHT_MOUSE:	
@@ -101,7 +144,7 @@ class MineSweeper(Fl_Window):
 				wid.label('')
 				self.marked.remove(wid)
 			
-		else:
+		elif Fl.event_button() == FL_LEFT_MOUSE:
 			
 			if wid.label() != '@>':
 			
@@ -111,6 +154,8 @@ class MineSweeper(Fl_Window):
 				
 				
 				if len(self.on)==0:
+					
+					self.timer()
 					
 					self.on.append(wid)
 					
@@ -179,20 +224,26 @@ class MineSweeper(Fl_Window):
 					self.checkarea(wid)
 					wid.when(0)
 					
-					print(len(self.on))
-					
 				elif wid in self.countbuts and wid not in self.on: #if clicked square is numsquare
-					wid.label(self.bl.index(self.countbuts
+					
+					wid.label(self.mnums[self.countbuts.index(wid)])
+					wid.labelsize(40)
 					self.on.append(wid)				
 					wid.when(0)
 							
 				if len(self.on) == 90:
 						for x in self.mines:
 							x.label('@circle')
-							x.labelcolor(FL_BLACK)
+							x.labelcolor(FL_WHITE)
 							x.labelsize(25)
-				
-						fl_message('You win!')	
+							
+						for row in range(len(self.bl)):
+							for column in range(len(self.bl)):
+								self.bl[row][column].when(0)	
+						
+						win=True	
+						self.running=False
+						Fl.add_timeout(1.5, self.gameend, win)	
 				
 				elif wid in self.mines: #if clicked square is a mine
 					for x in self.mines:
@@ -200,7 +251,19 @@ class MineSweeper(Fl_Window):
 						x.labelcolor(FL_RED)
 						x.labelsize(25)
 						
-					fl_message('You lose!')
+					for y in self.marked:
+						if y not in self.mines:
+							y.label('@undo')
+							
+					for row in range(len(self.bl)):
+						for column in range(len(self.bl)):
+							self.bl[row][column].when(0)
+								
+						
+					win=False	
+					self.running=False
+					Fl.add_timeout(1.5, self.gameend, win)
+		
 		
 			
 x=Fl.w()//2-250
@@ -212,4 +275,5 @@ game=MineSweeper(x,y,w,h, 'MineSweeper')
 game.show()
 Fl_scheme('gltk')
 Fl.run()
+
 
