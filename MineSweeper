@@ -51,6 +51,7 @@ class MineSweeper(Fl_Window):
 			self.bl.append(self.xcord)
 				
 		self.end()
+		self.resizable(self)
 	
 	'''FUNCTION TO FIND INDICES OF ITEMS IN 2D LIST (like using list.index(element), but for 2d lists'''
 	def index2d(self, L, v):
@@ -275,5 +276,6 @@ game=MineSweeper(x,y,w,h, 'MineSweeper')
 game.show()
 Fl_scheme('gltk')
 Fl.run()
+
 
 
