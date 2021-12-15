@@ -1,7 +1,6 @@
 from fltk import *
 import random
 
-#MUST BE RESIZABLE
 class MineSweeper(Fl_Window):
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Window.__init__(self, x, y, w, h, label)
@@ -15,14 +14,14 @@ class MineSweeper(Fl_Window):
 		self.on=[] #list of squares shown
 		self.marked=[] #list of marked flags
 		self.countbuts=[] #list of squares touching at least one mine
-		self.usednums=[] #list of numbers already
-		self.mnums=[]
-		self.randnum=-1
-		self.randnum2=-1
+		self.mnums=[] #list of labels for each button in countbuts
+		self.randnum=-1 #used to randomly place mines
+		self.randnum2=-1 #used to randomly place mines
+		self.usednums=[] #list of used coords for placing mines
 		self.bl=[]
 		self.width=50
 		self.mines=[]
-		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
+		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)] #used to find area around blank squares
 		
 		self.begin()
 		
@@ -276,6 +275,3 @@ game=MineSweeper(x,y,w,h, 'MineSweeper')
 game.show()
 Fl_scheme('gltk')
 Fl.run()
-
-
-
