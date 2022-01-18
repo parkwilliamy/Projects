@@ -3,9 +3,8 @@ import sys, socket
 from PIL import Image
 import io
 
-#chess pieces wikimedia
 
-class Board(Fl_Window):
+class Piece(Fl_Box):
 	def img_resize(self,fname,width):
 		'''resizes any image type using high quality PIL library'''
 		img = Image.open(fname) #opens all image formats supported by PIL
@@ -18,15 +17,52 @@ class Board(Fl_Window):
 		return Fl_PNG_Image(None, mem.getbuffer(), siz)
 	
 	
+	def __init__(self,pic, name, x, y, w, h):
+		Fl_Box.__init__(self, x, y, w, h)
+		self.box(FL_NO_BOX) # default: box is not drawn
+		pic=self.img_resize(name, 100)
+		self.image(pic)
+		self.dx=0 #offsets to top corner of box
+		self.dy=0
+
+	def handle(self, event):
+		r = super().handle(event)
+		if event==FL_PUSH:
+			self.dx= Fl.event_x() - self.x()
+			self.dy= Fl.event_y() - self.y()
+			return 1
+		elif event==FL_DRAG:
+			X= Fl.event_x()
+			Y= Fl.event_y()
+			self.position(X-self.dx, Y-self.dy)
+			self.parent().redraw()
+			return 1
+		elif event==FL_RELEASE:
+			X= Fl.event_x()
+			Y= Fl.event_y()
+			self.position(X//100*100,Y//100*100)
+			self.parent().redraw()
+
+			return 1
+		else:
+			return r
+
+class Board(Fl_Window):
+	
+	
+	
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Window.__init__(self,x,y,w,h,label)
-		self.pieces=[]
+		self.wpieces=[] #list of white pieces
+		self.bpieces=[] #list of black pieces
 		
-		
-		images=['pawn.png','rook.png','bishop.png','king.png','queen.png','pawn2.png','rook2.png','bishop2.png','king2.png','queen2.png']
+		images=['rook.png','knight.png','bishop.png','queen.png','king.png','pawn.png','rook2.png','knight2.png','bishop2.png','queen2.png','king2.png','pawn2.png']
 		for name in images: 
-			pic=self.img_resize(name, 100)
-			self.pieces.append(pic)
+			if images.index(name) >= 6:
+				self.wpieces.append(Piece(name, 0,0,100,100))
+				
+			else:
+				self.bpieces.append(Piece(name, 0,0,100,100))
 		
 		self.begin()
 		self.width=100
@@ -54,10 +90,29 @@ class Board(Fl_Window):
 				
 			self.bl.append(self.xcord)
 		
+		'''BLACK PIECES'''
+		
 		for col in range(8):
-			self.bl[6][col].image(self.pieces[0])
+			self.bl[6][col].image(self.bpieces[5])
 			
-	
+		for col in range(5):
+			self.bl[7][col].image(self.bpieces[col])
+			
+		for col in range(3):
+			self.bl[7][col+5].image(self.bpieces[2-col])
+			
+		'''WHITE PIECES'''	
+			
+		for col in range(8):
+			self.bl[1][col].image(self.wpieces[5])
+		
+			
+		for col in range(5):
+			self.bl[0][col].image(self.wpieces[col])
+			
+
+		for col in range(3):
+			self.bl[0][col+5].image(self.wpieces[2-col])	
 		
 		self.end()
 		
@@ -76,4 +131,5 @@ game=Board(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
+
 
