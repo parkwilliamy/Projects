@@ -1,13 +1,33 @@
 from fltk import *
 import sys, socket
+from PIL import Image
+import io
 
 #chess pieces wikimedia
 
 class Board(Fl_Window):
+	def img_resize(self,fname,width):
+		'''resizes any image type using high quality PIL library'''
+		img = Image.open(fname) #opens all image formats supported by PIL
+		w,h = img.size
+		height = int(width*h/w)  #correct aspect ratio
+		img = img.resize((width, height), Image.BICUBIC) #high quality resizing
+		mem = io.BytesIO()  #byte stream memory object
+		img.save(mem, format="PNG") #converts image type to PNG byte stream
+		siz = mem.tell() #gets size of image in bytes without reading again
+		return Fl_PNG_Image(None, mem.getbuffer(), siz)
 	
 	
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Window.__init__(self,x,y,w,h,label)
+		self.pieces=[]
+		
+		
+		images=['pawn.png','rook.png','bishop.png','king.png','queen.png','pawn2.png','rook2.png','bishop2.png','king2.png','queen2.png']
+		for name in images: 
+			pic=self.img_resize(name, 100)
+			self.pieces.append(pic)
+		
 		self.begin()
 		self.width=100
 		
@@ -34,6 +54,10 @@ class Board(Fl_Window):
 				
 			self.bl.append(self.xcord)
 		
+		for col in range(8):
+			self.bl[6][col].image(self.pieces[0])
+			
+	
 		
 		self.end()
 		
@@ -52,3 +76,4 @@ game=Board(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
+
