@@ -1,0 +1,54 @@
+from fltk import *
+import sys, socket
+
+#chess pieces wikimedia
+
+class Board(Fl_Window):
+	
+	
+	def __init__(self,x,y,w,h,label=None):
+		Fl_Window.__init__(self,x,y,w,h,label)
+		self.begin()
+		self.width=100
+		
+		self.bl=[]
+		
+		for y in range(8):
+			self.xcord=[]
+			for x in range(8):
+				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
+				self.but.box(FL_FLAT_BOX)
+				self.xcord.append(self.but)
+				if y%2==0:
+					if x%2==0:
+						self.but.color(55,47) 
+					else:
+						self.but.color(229,179)
+					
+				if y%2==1:	
+					if x%2==1:
+						self.but.color(55,47)
+					else:
+						self.but.color(229,179)	
+				
+				
+			self.bl.append(self.xcord)
+		
+		
+		self.end()
+		
+		self.show()
+
+
+
+
+x=Fl.w()//2-400
+y=Fl.h()//2-400	
+w=800
+h=800		
+
+game=Board(x,y,w,h)
+
+Fl_scheme('gtk+')
+
+Fl.run()
