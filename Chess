@@ -9,8 +9,13 @@ class Board(Fl_Window):
 		Fl_Window.__init__(self,x,y,w,h,label)
 		self.wpieces=[] #list of white pieces
 		self.bpieces=[] #list of black pieces
-		self.bpawns=[]
-		self.xpieces=[]
+		self.pawns=[]
+		self.rooks=[]
+		self.kings=[]
+		self.queens=[]
+		self.bishops=[]
+		self.knights=[]
+		
 		images=['rook.png','knight.png','bishop.png','queen.png','king.png','pawn.png','rook2.png','knight2.png','bishop2.png','queen2.png','king2.png','pawn2.png']
 		
 		for name in images: 
@@ -46,21 +51,35 @@ class Board(Fl_Window):
 				
 			self.bl.append(self.xcord)
 			
-		
+		'''PAWNS'''
 		
 		for col in range(8):
-			self.bpawns.append(Piece(self.bpieces[5], col*100, 600, 100, 100))
-		
-		
-		
-		for col in range(5):
-			self.xpieces.append(Piece(self.bpieces[col], col*100, 700, 100, 100))
+			self.pawns.append(Pawn(self.bpieces[5], col*100, 600, 100, 100))
 			
-		
-		for col in range(3):
-			self.xpieces.append(Piece(self.bpieces[2-col], col*100+500, 700, 100, 100))
-			#self.bl[7][col+5].image(self.bpieces[2-col])
 			
+		for col in range(8):
+			self.pawns.append(Pawn(self.wpieces[5], col*100, 100, 100, 100))	
+		
+		'ROOKS'''
+			
+		self.rooks.append(Rook(self.bpieces[0], 0, 700, 100,100))
+		self.rooks.append(Rook(self.bpieces[0], 700, 700, 100,100))
+		self.rooks.append(Rook(self.wpieces[0], 0, 0, 100,100))
+		self.rooks.append(Rook(self.wpieces[0], 700, 0, 100,100))
+		
+		'''BISHOPS'''
+		self.bishops.append(Bishop(self.bpieces[2], 200, 700, 100,100))
+		self.bishops.append(Bishop(self.bpieces[2], 500, 700, 100,100))
+		self.bishops.append(Bishop(self.wpieces[2], 200, 0, 100,100))
+		self.bishops.append(Bishop(self.wpieces[2], 500, 0, 100,100))
+		
+		'''KINGS'''
+		self.kings.append(King(self.bpieces[4], 400, 700, 100, 100))
+		self.kings.append(King(self.wpieces[4], 400, 0, 100, 100))
+		
+		'''QUEENS'''
+		self.queens.append(Queen(self.bpieces[3], 300, 700, 100, 100))
+		self.queens.append(Queen(self.wpieces[3], 300, 0, 100, 100))
 		
 		self.end()
 		
@@ -73,6 +92,7 @@ class Piece(Fl_Box):
 		self.image(pic)
 		self.dx=0 #offsets to top corner of box
 		self.dy=0
+		
 
 	def handle(self, event):
 		r = super().handle(event)
@@ -89,7 +109,49 @@ class Piece(Fl_Box):
 		elif event==FL_RELEASE:
 			X= Fl.event_x()
 			Y= Fl.event_y()
-			self.position(X//100*100,Y//100*100)
+			if type(self)==Pawn:
+				if (X//100*100)-self.cx > 0 or (X//100*100)-self.cx < 0 or self.cy-(Y//100*100) > abs(100): #if x coord of released position is different than current position, revert piece back to current position. If the difference in y coord from current to released position is greater than 100 (one square), revert back to current position
+					self.position(self.cx,self.cy)
+					
+				
+				else:
+					self.position(X//100*100,Y//100*100)
+					self.cx=X//100*100
+					self.cy=Y//100*100
+				
+					
+			elif type(self)==Rook:
+				if self.cx != X//100*100 and self.cy != Y//100*100:
+					self.position(self.cx,self.cy)
+					
+				else:
+					self.position(X//100*100,Y//100*100)
+					self.cx=X//100*100
+					self.cy=Y//100*100
+					
+			elif type(self)==Bishop:
+				if self.cx == X//100*100 or self.cy == Y//100*100:
+					self.position(self.cx,self.cy)
+					
+				else:
+					self.position(X//100*100,Y//100*100)
+					self.cx=X//100*100
+					self.cy=Y//100*100
+					
+			elif type(self)==King:
+				if self.cy-(Y//100*100) > abs(100) or self.cx-(Y//100*100) > abs(100):
+					self.position(self.cx,self.cy)
+					
+				else:
+					self.position(X//100*100,Y//100*100)
+					self.cx=X//100*100
+					self.cy=Y//100*100
+					
+			elif type(self)==Queen:
+				self.position(X//100*100,Y//100*100)
+				self.cx=X//100*100
+				self.cy=Y//100*100
+			
 			self.parent().redraw()
 
 			return 1
@@ -105,18 +167,64 @@ class Piece(Fl_Box):
 	
 	
 	
-	
-'''	
-class Rook(Piece):
-	
 class Pawn(Piece):
-	
+	def __init__(self,pic, x, y, w, h):
+		Fl_Box.__init__(self, x, y, w, h)
+		self.box(FL_NO_BOX) # default: box is not drawn
+		self.image(pic)
+		self.dx=0 #offsets to top corner of box
+		self.dy=0
+		self.cx=self.x()
+		self.cy=self.y()
+		
+		
+class Rook(Piece):
+	def __init__(self,pic, x, y, w, h):
+		Fl_Box.__init__(self, x, y, w, h)
+		self.box(FL_NO_BOX) # default: box is not drawn
+		self.image(pic)
+		self.dx=0 #offsets to top corner of box
+		self.dy=0
+		self.cx=self.x()
+		self.cy=self.y()
+		
 class Bishop(Piece):
+	def __init__(self,pic, x, y, w, h):
+		Fl_Box.__init__(self, x, y, w, h)
+		self.box(FL_NO_BOX) # default: box is not drawn
+		self.image(pic)
+		self.dx=0 #offsets to top corner of box
+		self.dy=0
+		self.cx=self.x()
+		self.cy=self.y()
+			
 
-class King(Piece):
-	
+class King(Piece): #FIX THE KING
+	def __init__(self,pic, x, y, w, h):
+		Fl_Box.__init__(self, x, y, w, h)
+		self.box(FL_NO_BOX) # default: box is not drawn
+		self.image(pic)
+		self.dx=0 #offsets to top corner of box
+		self.dy=0
+		self.cx=self.x()
+		self.cy=self.y()
+
 class Queen(Piece):
+	def __init__(self,pic, x, y, w, h):
+		Fl_Box.__init__(self, x, y, w, h)
+		self.box(FL_NO_BOX) # default: box is not drawn
+		self.image(pic)
+		self.dx=0 #offsets to top corner of box
+		self.dy=0
+		self.cx=self.x()
+		self.cy=self.y()
+	'''
+class Knight(Piece):
+	
 '''
+	
+	
+		
 x=Fl.w()//2-400
 y=Fl.h()//2-400	
 w=800
@@ -127,6 +235,7 @@ game=Board(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
+
 
 
 
