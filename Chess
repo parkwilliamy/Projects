@@ -7,8 +7,7 @@ class Board(Fl_Double_Window):
 	
 	def __init__(self,x,y,w,h,label=None):
 		Fl_Double_Window.__init__(self,x,y,w,h,label)
-		self.wpieces=[] #list of white pieces
-		self.bpieces=[] #list of black pieces
+		self.pieces=[] #list of tuples (piece, color)
 		self.pawns=[]
 		self.rooks=[]
 		self.kings=[]
@@ -20,10 +19,10 @@ class Board(Fl_Double_Window):
 		
 		for name in images: 
 			if images.index(name) >= 6:
-				self.wpieces.append(img_resize(name, 100))
+				self.pieces.append((img_resize(name, 100), 'b'))
 				
 			else:
-				self.bpieces.append(img_resize(name, 100))
+				self.pieces.append((img_resize(name, 100), 'w'))
 		
 		self.begin()
 		self.width=100
@@ -54,53 +53,73 @@ class Board(Fl_Double_Window):
 		'''PAWNS'''
 		
 		for col in range(8):
-			self.pawns.append(Piece(self.bpieces[5], col*100, 600, 100, 100))
+			self.pawns.append(Piece(self.pieces[5][0], col*100, 600, 100, 100))
 			
 			
 		for col in range(8):
-			self.pawns.append(Piece(self.wpieces[5], col*100, 100, 100, 100))	
+			self.pawns.append(Piece(self.pieces[11][0], col*100, 100, 100, 100))	
+			
 		
 		'ROOKS'''
 			
-		self.rooks.append(Piece(self.bpieces[0], 0, 700, 100,100))
-		self.rooks.append(Piece(self.bpieces[0], 700, 700, 100,100))
-		self.rooks.append(Piece(self.wpieces[0], 0, 0, 100,100))
-		self.rooks.append(Piece(self.wpieces[0], 700, 0, 100,100))
+		self.rooks.append(Piece(self.pieces[0][0], 0, 700, 100,100))
+		
+		self.rooks.append(Piece(self.pieces[0][0], 700, 700, 100,100))
+		
+		self.rooks.append(Piece(self.pieces[6][0], 0, 0, 100,100))
+		
+		self.rooks.append(Piece(self.pieces[6][0], 700, 0, 100,100))
+		
 		
 		'''BISHOPS'''
-		self.bishops.append(Piece(self.bpieces[2], 200, 700, 100,100))
-		self.bishops.append(Piece(self.bpieces[2], 500, 700, 100,100))
-		self.bishops.append(Piece(self.wpieces[2], 200, 0, 100,100))
-		self.bishops.append(Piece(self.wpieces[2], 500, 0, 100,100))
+		self.bishops.append(Piece(self.pieces[2][0], 200, 700, 100,100))
+		
+		self.bishops.append(Piece(self.pieces[2][0], 500, 700, 100,100))
+		
+		self.bishops.append(Piece(self.pieces[8][0], 200, 0, 100,100))
+		
+		self.bishops.append(Piece(self.pieces[8][0], 500, 0, 100,100))
+		
 		
 		'''KINGS'''
-		self.kings.append(Piece(self.bpieces[4], 400, 700, 100, 100))
-		self.kings.append(Piece(self.wpieces[4], 400, 0, 100, 100))
+		self.kings.append(Piece(self.pieces[4][0], 400, 700, 100, 100))
+		
+		self.kings.append(Piece(self.pieces[10][0], 400, 0, 100, 100))
+		
 		
 		'''QUEENS'''
-		self.queens.append(Piece(self.bpieces[3], 300, 700, 100, 100))
-		self.queens.append(Piece(self.wpieces[3], 300, 0, 100, 100))
+		self.queens.append(Piece(self.pieces[3][0], 300, 700, 100, 100))
+		
+		self.queens.append(Piece(self.pieces[9][0], 300, 0, 100, 100))
+		
 		
 		'''KNIGHTS'''
-		self.knights.append(Piece(self.bpieces[1], 100, 700, 100, 100))
-		self.knights.append(Piece(self.bpieces[1], 600, 700, 100, 100))
-		self.knights.append(Piece(self.wpieces[1], 100, 0, 100, 100))
-		self.knights.append(Piece(self.wpieces[1], 600, 0, 100, 100))
+		self.knights.append(Piece(self.pieces[1][0], 100, 700, 100, 100))
+		
+		self.knights.append(Piece(self.pieces[1][0], 600, 700, 100, 100))
+		
+		self.knights.append(Piece(self.pieces[7][0], 100, 0, 100, 100))
+		
+		self.knights.append(Piece(self.pieces[7][0], 600, 0, 100, 100))
+		
 		
 		self.end()
 		
 		self.show()
 
 class Piece(Fl_Box):
+	locs={}
 	def __init__(self,pic, x, y, w, h):
 		Fl_Box.__init__(self, x, y, w, h)
 		self.box(FL_NO_BOX) # default: box is not drawn
 		self.image(pic)
-		
+		Piece.locs[self]=(x,y)
 		
 
 	def handle(self, event):
 		r = super().handle(event)
+		self.cx=self.x()
+		self.cy=self.y()
 		if event==FL_PUSH:
 			self.dx= Fl.event_x() - self.x()
 			self.dy= Fl.event_y() - self.y()
@@ -115,6 +134,18 @@ class Piece(Fl_Box):
 			X= Fl.event_x()
 			Y= Fl.event_y()
 			self.position(X//100*100,Y//100*100)
+				
+			
+			if (X//100*100,Y//100*100) in Piece.locs.values() and (X//100*100,Y//100*100)!=(self.cx,self.cy):
+				for x in Piece.locs:
+					if Piece.locs[x] == (X//100*100,Y//100*100): #x is type of piece
+						Piece.locs.pop(x)
+						x.image(None)
+						break
+			
+			Piece.locs[self]=(X//100*100,Y//100*100)	
+			print(len(Piece.locs))
+			
 			self.parent().redraw()
 
 			return 1
@@ -132,8 +163,6 @@ game=Board(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
-
-
 
 
 
