@@ -114,12 +114,13 @@ class Piece(Fl_Box):
 		self.box(FL_NO_BOX) # default: box is not drawn
 		self.image(pic)
 		Piece.locs[self]=(x,y)
+		self.cx=self.x()
+		self.cy=self.y()
 		
 
 	def handle(self, event):
 		r = super().handle(event)
-		self.cx=self.x()
-		self.cy=self.y()
+		
 		if event==FL_PUSH:
 			self.dx= Fl.event_x() - self.x()
 			self.dy= Fl.event_y() - self.y()
@@ -134,17 +135,21 @@ class Piece(Fl_Box):
 			X= Fl.event_x()
 			Y= Fl.event_y()
 			self.position(X//100*100,Y//100*100)
-				
+			print(Piece.locs[self])
 			
 			if (X//100*100,Y//100*100) in Piece.locs.values() and (X//100*100,Y//100*100)!=(self.cx,self.cy):
 				for x in Piece.locs:
 					if Piece.locs[x] == (X//100*100,Y//100*100): #x is type of piece
 						Piece.locs.pop(x)
 						x.image(None)
+						print('taken')
 						break
 			
 			Piece.locs[self]=(X//100*100,Y//100*100)	
-			print(len(Piece.locs))
+			print(Piece.locs[self])
+			self.cx=X//100*100
+			self.cy=Y//100*100
+			print(self.cx,self.cy)
 			
 			self.parent().redraw()
 
@@ -163,6 +168,7 @@ game=Board(x,y,w,h)
 Fl_scheme('gtk+')
 
 Fl.run()
+
 
 
 
