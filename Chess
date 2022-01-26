@@ -3,10 +3,25 @@ from funcs import img_resize
 import sys, socket
 	
 class Board(Fl_Double_Window):
+	game=[] #locations of pieces on all boards 
+	locs={} #locations of pieces on the current board, key=piece type, value=location
 	
+	def butcb(self, wid):
+		
+		
+		if len(Board.game) > 1:
+			for piece, loc in Board.game[-1].items():
+				piece.position(loc[0],loc[1])
+				Board.locs[piece]=(loc[0],loc[1])
+			
+			Board.game.append(dict(Board.locs.items()))	
+			
+		print(len(Board.game))	
+		self.redraw()
+				
 	
 	def __init__(self,x,y,w,h,label=None):
-		Fl_Double_Window.__init__(self,x,y,w,h,label)
+		super().__init__(x,y,w,h,label)
 		self.pieces=[] #list of tuples (piece, color)
 		self.pawns=[]
 		self.rooks=[]
@@ -26,6 +41,10 @@ class Board(Fl_Double_Window):
 		
 		self.begin()
 		self.width=100
+		
+		
+		self.undo=Fl_Button(800,0,200,100,'Undo')
+		self.undo.callback(self.butcb)
 		
 		self.bl=[]
 		
@@ -63,43 +82,32 @@ class Board(Fl_Double_Window):
 		'ROOKS'''
 			
 		self.rooks.append(Piece(self.pieces[0][0], 0, 700, 100,100))
-		
 		self.rooks.append(Piece(self.pieces[0][0], 700, 700, 100,100))
-		
 		self.rooks.append(Piece(self.pieces[6][0], 0, 0, 100,100))
-		
 		self.rooks.append(Piece(self.pieces[6][0], 700, 0, 100,100))
 		
 		
 		'''BISHOPS'''
 		self.bishops.append(Piece(self.pieces[2][0], 200, 700, 100,100))
-		
 		self.bishops.append(Piece(self.pieces[2][0], 500, 700, 100,100))
-		
 		self.bishops.append(Piece(self.pieces[8][0], 200, 0, 100,100))
-		
 		self.bishops.append(Piece(self.pieces[8][0], 500, 0, 100,100))
 		
 		
 		'''KINGS'''
 		self.kings.append(Piece(self.pieces[4][0], 400, 700, 100, 100))
-		
 		self.kings.append(Piece(self.pieces[10][0], 400, 0, 100, 100))
 		
 		
 		'''QUEENS'''
 		self.queens.append(Piece(self.pieces[3][0], 300, 700, 100, 100))
-		
 		self.queens.append(Piece(self.pieces[9][0], 300, 0, 100, 100))
 		
 		
 		'''KNIGHTS'''
 		self.knights.append(Piece(self.pieces[1][0], 100, 700, 100, 100))
-		
 		self.knights.append(Piece(self.pieces[1][0], 600, 700, 100, 100))
-		
 		self.knights.append(Piece(self.pieces[7][0], 100, 0, 100, 100))
-		
 		self.knights.append(Piece(self.pieces[7][0], 600, 0, 100, 100))
 		
 		
@@ -108,15 +116,15 @@ class Board(Fl_Double_Window):
 		self.show()
 
 class Piece(Fl_Box):
-	locs={}
 	def __init__(self,pic, x, y, w, h):
-		Fl_Box.__init__(self, x, y, w, h)
+		super().__init__(x, y, w, h)
 		self.box(FL_NO_BOX) # default: box is not drawn
 		self.image(pic)
-		Piece.locs[self]=(x,y)
+		Board.locs[self]=(x,y)
 		self.cx=self.x()
 		self.cy=self.y()
-		
+		if len(Board.locs) == 32:
+			Board.game.append(dict(Board.locs.items()))
 
 	def handle(self, event):
 		r = super().handle(event)
@@ -132,26 +140,36 @@ class Piece(Fl_Box):
 			self.parent().redraw()
 			return 1
 		elif event==FL_RELEASE:
+			self.marked=[]
 			X= Fl.event_x()
 			Y= Fl.event_y()
 			self.position(X//100*100,Y//100*100)
-			print(Piece.locs[self])
+			Board.game.append(dict(Board.locs.items()))
+			if X//100*100 < 0 or X//100*100 > 700 or Y//100*100 < 0 or Y//100*100 > 700:
+				X=self.cx
+				Y=self.cy
+				self.position(X//100*100,Y//100*100)
+				
 			
-			if (X//100*100,Y//100*100) in Piece.locs.values() and (X//100*100,Y//100*100)!=(self.cx,self.cy):
-				for x in Piece.locs:
-					if Piece.locs[x] == (X//100*100,Y//100*100): #x is type of piece
-						Piece.locs.pop(x)
-						x.image(None)
-						print('taken')
-						break
 			
-			Piece.locs[self]=(X//100*100,Y//100*100)	
-			print(Piece.locs[self])
+			if (X//100*100,Y//100*100) in Board.locs.values() and (X//100*100,Y//100*100)!=(self.cx,self.cy):
+				for piece, loc in Board.locs.items():
+					if loc == (X//100*100,Y//100*100):
+						self.marked.append(piece)
+						piece.image(None)
+						piece.position(10000,100000) #filler values to remove blank piece off grid
+						
+				Board.locs.pop(self.marked[0])
+			
+					
+			Board.locs[self]=(X//100*100,Y//100*100)
+						
 			self.cx=X//100*100
-			self.cy=Y//100*100
-			print(self.cx,self.cy)
+			self.cy=Y//100*100			
+						
 			
 			self.parent().redraw()
+			
 
 			return 1
 		else:
@@ -160,16 +178,14 @@ class Piece(Fl_Box):
 	
 x=Fl.w()//2-400
 y=Fl.h()//2-400	
-w=800
+w=1000
 h=800		
 
 game=Board(x,y,w,h)
 
-Fl_scheme('gtk+')
+Fl_scheme('gleam')
 
 Fl.run()
-
-
 
 
 
