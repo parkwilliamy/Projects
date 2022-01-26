@@ -6,17 +6,23 @@ class Board(Fl_Double_Window):
 	game=[] #locations of pieces on all boards 
 	locs={} #locations of pieces on the current board, key=piece type, value=location
 	
-	def butcb(self, wid):
-		
+	def undocb(self, wid):
 		
 		if len(Board.game) > 1:
 			for piece, loc in Board.game[-1].items():
 				piece.position(loc[0],loc[1])
 				Board.locs[piece]=(loc[0],loc[1])
+				
+				
+				if piece in Piece.taken:
+					Piece.cx=loc[0]
+					Piece.cy=loc[1]
+					piece.image(Piece.taken[piece])
+					Piece.taken.pop(piece)
 			
 			Board.game.append(dict(Board.locs.items()))	
 			
-		print(len(Board.game))	
+			
 		self.redraw()
 				
 	
@@ -44,7 +50,7 @@ class Board(Fl_Double_Window):
 		
 		
 		self.undo=Fl_Button(800,0,200,100,'Undo')
-		self.undo.callback(self.butcb)
+		self.undo.callback(self.undocb)
 		
 		self.bl=[]
 		
@@ -116,13 +122,16 @@ class Board(Fl_Double_Window):
 		self.show()
 
 class Piece(Fl_Box):
+	taken={}
+	cx=0
+	cy=0
 	def __init__(self,pic, x, y, w, h):
 		super().__init__(x, y, w, h)
 		self.box(FL_NO_BOX) # default: box is not drawn
 		self.image(pic)
 		Board.locs[self]=(x,y)
-		self.cx=self.x()
-		self.cy=self.y()
+		Piece.cx=self.x()
+		Piece.cy=self.y()
 		if len(Board.locs) == 32:
 			Board.game.append(dict(Board.locs.items()))
 
@@ -146,26 +155,25 @@ class Piece(Fl_Box):
 			self.position(X//100*100,Y//100*100)
 			Board.game.append(dict(Board.locs.items()))
 			if X//100*100 < 0 or X//100*100 > 700 or Y//100*100 < 0 or Y//100*100 > 700:
-				X=self.cx
-				Y=self.cy
-				self.position(X//100*100,Y//100*100)
+				print(Piece.cx,Piece.cy)
+				self.position(Piece.cx,Piece.cy)
 				
 			
-			
-			if (X//100*100,Y//100*100) in Board.locs.values() and (X//100*100,Y//100*100)!=(self.cx,self.cy):
+			if (X//100*100,Y//100*100) in Board.locs.values() and (X//100*100,Y//100*100)!=(Piece.cx,Piece.cy):
 				for piece, loc in Board.locs.items():
 					if loc == (X//100*100,Y//100*100):
+						Piece.taken[piece]=piece.image()
 						self.marked.append(piece)
 						piece.image(None)
 						piece.position(10000,100000) #filler values to remove blank piece off grid
 						
-				Board.locs.pop(self.marked[0])
+				Board.locs.pop(self.marked[-1])
 			
 					
 			Board.locs[self]=(X//100*100,Y//100*100)
 						
-			self.cx=X//100*100
-			self.cy=Y//100*100			
+			Piece.cx=X//100*100
+			Piece.cy=Y//100*100			
 						
 			
 			self.parent().redraw()
@@ -186,6 +194,7 @@ game=Board(x,y,w,h)
 Fl_scheme('gleam')
 
 Fl.run()
+
 
 
 
