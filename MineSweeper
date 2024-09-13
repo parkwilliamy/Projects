@@ -18,7 +18,7 @@ class MineSweeper(Fl_Window):
 		self.randnum=-1 #used to randomly place mines
 		self.randnum2=-1 #used to randomly place mines
 		self.usednums=[] #list of used coords for placing mines
-		self.bl=[]
+		self.grid=[] #2D list of all the squares
 		self.width=50
 		self.mines=[]
 		self.area=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)] #used to find area around blank squares
@@ -28,7 +28,7 @@ class MineSweeper(Fl_Window):
 		self.label('Time: 00:00')
 		
 		for y in range(10):
-			self.xcord=[]
+			self.yrow=[]
 			for x in range(10):
 				self.but=Fl_Button(x*self.width, y*self.width, self.width,self.width)
 				if y%2==0:
@@ -43,11 +43,11 @@ class MineSweeper(Fl_Window):
 					else:
 						self.but.color(110,69)	
 					
-				self.xcord.append(self.but)
+				self.yrow.append(self.but) #adds the xth square to the yth row
 				self.but.callback(self.butcb)
 				
 				
-			self.bl.append(self.xcord)
+			self.grid.append(self.yrow) #adds the xth row to the grid
 				
 		self.end()
 		self.resizable(self)
@@ -60,8 +60,8 @@ class MineSweeper(Fl_Window):
 	
 	
 	'''RECURSIVE FUNCTION FOR BLANK SQUARES'''
-	def checkarea(self, wid): #checks squares around a blank square
-		i=self.index2d(self.bl, wid)
+	def checkarea(self, wid): #checks squares around a blank square, uses flood fill algorithm
+		i=self.index2d(self.grid, wid)
 		row=i[0]
 		column=i[1]
 		
@@ -72,23 +72,23 @@ class MineSweeper(Fl_Window):
 				continue	
 				
 					
-			if self.bl[row+r][column+c] in self.blank and self.bl[row+r][column+c] not in self.on:
-				self.bl[row+r][column+c].label('')
+			if self.grid[row+r][column+c] in self.blank and self.grid[row+r][column+c] not in self.on:
+				self.grid[row+r][column+c].label('')
 				contact=True
 			
 				
-			elif self.bl[row+r][column+c] in self.countbuts and self.bl[row+r][column+c] not in self.on:
-				self.bl[row+r][column+c].label(self.mnums[self.countbuts.index(self.bl[row+r][column+c])])
-				self.bl[row+r][column+c].labelsize(40)
-				self.bl[row+r][column+c].color(174,115)
-				self.on.append(self.bl[row+r][column+c])
+			elif self.grid[row+r][column+c] in self.countbuts and self.grid[row+r][column+c] not in self.on:
+				self.grid[row+r][column+c].label(self.mnums[self.countbuts.index(self.grid[row+r][column+c])])
+				self.grid[row+r][column+c].labelsize(40)
+				self.grid[row+r][column+c].color(174,115)
+				self.on.append(self.grid[row+r][column+c])
 						
 			if contact == False:
 				continue
 				
-			self.on.append(self.bl[row+r][column+c])
-			self.bl[row+r][column+c].color(174,115)
-			self.checkarea(self.bl[row+r][column+c])
+			self.on.append(self.grid[row+r][column+c])
+			self.grid[row+r][column+c].color(174,115)
+			self.checkarea(self.grid[row+r][column+c])
 			
 		self.redraw()
 		
@@ -132,7 +132,7 @@ class MineSweeper(Fl_Window):
 		if Fl.event_button() == FL_RIGHT_MOUSE:	
 			
 			
-			if wid not in self.on and wid not in self.marked:	
+			if wid not in self.on and wid not in self.marked: #if square not revealed already and not marked
 			
 				
 				self.marked.append(wid)
@@ -140,85 +140,85 @@ class MineSweeper(Fl_Window):
 				wid.labelsize(20)
 				wid.labelcolor(FL_RED)
 			
-			elif wid in self.marked:
+			elif wid in self.marked: #if marked already, remove the marker
 				wid.label('')
 				self.marked.remove(wid)
 			
 		elif Fl.event_button() == FL_LEFT_MOUSE:
 			
-			if wid.label() != '@>':
+			if wid.label() != '@>': #if clicked square is not already revealed
 			
-				if wid not in self.on and wid not in self.mines:
+				if wid not in self.on and wid not in self.mines: 
 					wid.color(174,115)
 					wid.redraw()
 				
 				
-				if len(self.on)==0:
+				if len(self.on)==0: #for first square clicked, starts the timer
 					
 					self.timer()
 					
 					self.on.append(wid)
 					
-					clickidx=self.index2d(self.bl, wid)
-					row2=clickidx[0]
-					column2=clickidx[1]
-					bsquares=[self.bl[row2][column2]]
+					clickidx=self.index2d(self.grid, wid) #finds X,Y location of the square just clicked
+					row2=clickidx[0] #Y location of square clicked
+					column2=clickidx[1] #X location of square clicked
+					bsquares=[self.grid[row2][column2]] #adds the square to blank squares
 					
 					for r,c in self.area:
 						
-						if row2+r < 0 or row2+r > 9 or column2+c < 0 or column2+c > 9: #edge cases
+						if row2+r < 0 or row2+r > 9 or column2+c < 0 or column2+c > 9: #edge cases for square clicked near borders 
 							continue
 							
-						bsquares.append(self.bl[row2+r][column2+c])
+						bsquares.append(self.grid[row2+r][column2+c]) #all squares directly touching the FIRST clicked square are safe
 					
 					
 					for x in range(10):
-						while (self.randnum,self.randnum2) in self.usednums or self.bl[self.randnum][self.randnum2] in bsquares:
+						while (self.randnum,self.randnum2) in self.usednums or self.grid[self.randnum][self.randnum2] in bsquares:
 							self.randnum=random.randrange(10)
 							self.randnum2=random.randrange(10)
 						
-						self.usednums.append((self.randnum,self.randnum2))
-						self.mines.append(self.bl[self.randnum][self.randnum2])
+						self.usednums.append((self.randnum,self.randnum2)) #ensures no square is repeated for mine placement
+						self.mines.append(self.grid[self.randnum][self.randnum2])
 						
-					for row in range(len(self.bl)):
-						for column in range(len(self.bl)):
-							if self.bl[row][column] not in self.mines:
+					for row in range(len(self.grid)):
+						for column in range(len(self.grid)):
+							if self.grid[row][column] not in self.mines:
 								
-								contact=0
+								contact=0 #number of mines touching a square
 								
 								for r,c in self.area: 
 									
 									if row+r < 0 or row+r > 9 or column+c < 0 or column+c > 9: #edge cases
 										continue
 										
-									if self.bl[row+r][column+c] in self.mines: #if a space is touching a mine
+									if self.grid[row+r][column+c] in self.mines: #if a space is touching a mine
 										contact+=1
 								
 								
 								if contact == 0:
-									self.blank.append(self.bl[row][column])
+									self.blank.append(self.grid[row][column])
 									continue
 									
 									
-								self.countbuts.append(self.bl[row][column])			
-								#self.bl[row][column].label(str(contact))
+								self.countbuts.append(self.grid[row][column])			
+								#self.grid[row][column].label(str(contact))
 								self.mnums.append(str(contact))
 								
 								if contact == 1:
-									self.bl[row][column].labelcolor(FL_RED)
+									self.grid[row][column].labelcolor(FL_RED)
 								
 								if contact == 2:
-									self.bl[row][column].labelcolor(FL_DARK_GREEN)
+									self.grid[row][column].labelcolor(FL_DARK_GREEN)
 									
 								if contact == 3:
-									self.bl[row][column].labelcolor(FL_BLUE)	
+									self.grid[row][column].labelcolor(FL_BLUE)	
 								
 								if contact == 4:
-									self.bl[row][column].labelcolor(FL_YELLOW)	
+									self.grid[row][column].labelcolor(FL_YELLOW)	
 	
 					
 				if wid in self.blank: #if clicked square is blank
-					if len(self.on) > 1:
+					if len(self.on) > 1: #if this is NOT the first square clicked
 						self.on.append(wid)
 						
 					self.checkarea(wid)
@@ -231,15 +231,15 @@ class MineSweeper(Fl_Window):
 					self.on.append(wid)				
 					wid.when(0)
 							
-				if len(self.on) == 90:
+				if len(self.on) == 90: 
 						for x in self.mines:
 							x.label('@circle')
 							x.labelcolor(FL_WHITE)
 							x.labelsize(25)
 							
-						for row in range(len(self.bl)):
-							for column in range(len(self.bl)):
-								self.bl[row][column].when(0)	
+						for row in range(len(self.grid)):
+							for column in range(len(self.grid)):
+								self.grid[row][column].when(0)	
 						
 						win=True	
 						self.running=False
@@ -255,9 +255,9 @@ class MineSweeper(Fl_Window):
 						if y not in self.mines:
 							y.label('@undo')
 							
-					for row in range(len(self.bl)):
-						for column in range(len(self.bl)):
-							self.bl[row][column].when(0)
+					for row in range(len(self.grid)):
+						for column in range(len(self.grid)):
+							self.grid[row][column].when(0)
 								
 						
 					win=False	
