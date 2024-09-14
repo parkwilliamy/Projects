@@ -128,7 +128,7 @@ Dvector Solvex(const Dmatrix &Amat, const Dvector &bvect)
     
     for (int i = 0; i < bvect.size(); i++) {
         
-        matx = Replace(Amat, i, bvect);
+        matx = Replace(Amat, i, bvect); //replaces ith column in the matrix with the solution vector
         sol = Det(matx)/deno;
         solutions.push_back(sol);
     }
@@ -141,14 +141,15 @@ Dvector Solvex(const Dmatrix &Amat, const Dvector &bvect)
 double Det(const Dmatrix &Amat)
 {
     
-    if (Amat.size() == 2) {
+    if (Amat.size() == 2) { //base case
         return Amat[0][0]*Amat[1][1]-Amat[0][1]*Amat[1][0];
         
     }
     
     for (int c = 0; c < Amat.size(); i++) {
         
-        return pow(-1, c)*Amat[0][c]*Det(Minor(Amat, c);
+        return pow(-1, c)*Amat[0][c]*Det(Minor(Amat, c); //alternates between positive and negative terms
+        //keeps looking for determinant of minor matrices until it reaches base case of 2x2 matrix
         
     }
     
