@@ -1,55 +1,53 @@
 int green = 2;
 int red = 7;
-int GSR = A0;
-int maxRes = 0;
-int minRes = 10000;
-int cycle = 0;
+int GSR = A0; //galvanic skin response (GSR), spikes in this number indicate lying from sweating
+int maxGSR = 0; //maximum GSR, default is zero before user is hooked up to detector
+int minGSR = 10000; //minimum GSR
+int period = 0;
 int buzzer = 10;
-int shift;
+int avgGSR;
 
 void setup() {
   // put your setup code here, to run once:
  Serial.begin(9600);
  pinMode(red, OUTPUT);
- pinMode(green, OUTPUT);
- pinMode(buzzer, OUTPUT);
- digitalWrite(red, HIGH);
+ pinMode(green, OUTPUT); //green LED turns on if lie isn't detected
+ pinMode(buzzer, OUTPUT); //buzzer goes off if person is detected to be lying
+ digitalWrite(red, HIGH); //red LED on by default
 }
 
 void loop() {
   // put your main code here, to run repeatedly: 
 
-  while (cycle < 150) {    
+  while (period < 150) {  //15 second calibration period, measures the minimum and maximum skin conductivity 
   
-    if (analogRead(GSR) > maxRes) {
-      maxRes = analogRead(GSR);
+    if (analogRead(GSR) > maxGSR) {
+      maxGSR = analogRead(GSR);
       
     }
     
-    if (analogRead(GSR) < minRes) {
-      minRes = analogRead(GSR);
+    if (analogRead(GSR) < minGSR) {
+      minGSR = analogRead(GSR);
       
     }
     
-    cycle++;
+    period++;
     Serial.println(analogRead(GSR));
     delay(100);
 
   }
 
-  if (cycle == 150) {
-    shift = 0.85*(maxRes - minRes);
-    cycle++;
+  if (period == 150) {
+    avgGSR = 0.85*(maxGSR - minGSR); //best measure of average GSR based off trial and error, reference for abnormal spikes (i.e., when someone is lying)
+    period++;
   }
 
 
-  if (analogRead(GSR) > (maxRes + shift)) {
-   // digitalWrite(buzzer, HIGH);
+  if (analogRead(GSR) > (maxGSR + avgGSR)) { //if user's GSR goes above what is considered a "normal" level, the lie detector is triggered
+    digitalWrite(buzzer, HIGH);
     digitalWrite(red, HIGH);
     digitalWrite(green, LOW);
     delay(3000);
- //   digitalWrite(buzzer, LOW);
-    delay(15000);
     digitalWrite(green, HIGH);
     digitalWrite(red, LOW);
   }
