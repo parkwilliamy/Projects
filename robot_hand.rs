@@ -49,11 +49,7 @@ fn main() -> ! {
     SysClockConfig();
     I2C1_Config();
     USART1_Config();
-
-    I2C_Transmit_Single(MODE1, 1<<4); //turn PCA9685 sleep mode on
-    I2C_Transmit_Single(MODE2, 0x04); //default settings
-    I2C_Transmit_Single(PRE_SCALE, 121);
-    I2C_Transmit_Single(MODE1, 1<<5); //turn sleep mode off and auto-increment on
+    PCA9685_Config();
 
     loop {
 
@@ -99,6 +95,15 @@ fn SysClockConfig() {
         while (core::ptr::read_volatile(RCC_CFGR) & (1<<3)) == 0 {} //Wait for PLL to be system clock
         
     }   
+}
+
+fn PCA9685_Config() {
+
+    I2C_Transmit_Single(MODE1, 1<<4); //turn PCA9685 sleep mode on
+    I2C_Transmit_Single(MODE2, 0x04); //default settings
+    I2C_Transmit_Single(PRE_SCALE, 121);
+    I2C_Transmit_Single(MODE1, 1<<5); //turn sleep mode off and auto-increment on
+
 }
 
 fn I2C1_Config() {
